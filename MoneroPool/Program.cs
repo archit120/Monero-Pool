@@ -11,13 +11,17 @@ using System.Threading;
 using System.Numerics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace MoneroPool
 {
     internal struct worker
     {
         public string address;
-        public string guid;
+        //public string guid;
+
+        public JObject work;
+        public DateTime last_heard;
     }
 
     internal class Program
@@ -25,8 +29,9 @@ namespace MoneroPool
         public enum ShareProcess{ValidShare, ValidBlock, InvalidShare}
 
         private static JsonRPC json = new JsonRPC("http://127.0.0.1:18081");
+        private static JsonRPC Walletjson = new JsonRPC("http://127.0.0.1:8082");
 
-        private static Dictionary<worker, JObject> ConnectedClients = new Dictionary<worker, JObject>();
+        private static Dictionary<string, worker> ConnectedClients = new Dictionary<string, worker>();
 
         public static byte[] CryptoNight(byte[] data)
         {
@@ -46,6 +51,8 @@ namespace MoneroPool
 
             JObject test2 = json.InvokeMethod("getblockcount");
             CurrentBlockHeight = (int) test2["result"]["count"];
+            test2 = json.InvokeMethod("getblockheaderbyheight", CurrentBlockHeight);
+
                 //, new JObject(new JProperty("reserve_size", 4), new JProperty("wallet_address", "41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV")));
             Console.WriteLine(test2);
             test2 = json.InvokeMethod("getblocktemplate",
@@ -72,10 +79,15 @@ namespace MoneroPool
             while (true)
             {
 
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
                 test2 = json.InvokeMethod("getblockcount");
                 CurrentBlockHeight = (int) test2["result"]["count"];
-                    //, new JObject(new JProperty("reserve_size", 4), new JProperty("wallet_address", "41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV")));
+
+                ConnectedClients =
+                    ConnectedClients.AsParallel()
+                                    .Where(x => (DateTime.Now - x.Value.last_heard).Seconds > 10)
+                                    .ToDictionary(x => x.Key, x => x.Value);
+                //, new JObject(new JProperty("reserve_size", 4), new JProperty("wallet_address", "41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV")));
 
             }
         }
@@ -209,9 +221,7 @@ namespace MoneroPool
 
             response["id"] = 0;
             response["jsonrpc"] = "2.0";
-            if ((string) request["method"] == "login" ||
-                ConnectedClients.Count(x => x.Key.guid == (string) request["params"]["id"]) > 0 &&
-                (string) request["method"] == "getjob")
+            if ((string) request["method"] == "login" || ConnectedClients.ContainsKey((string) request["params"]["id"]) &&(string) request["method"] == "getjob")
             {
                 JObject result = new JObject();
                 string guid = Guid.NewGuid().ToString();
@@ -229,21 +239,21 @@ namespace MoneroPool
 
                 if ((string) request["method"] == "login" ||
                     (int) blob["result"]["height"] >
-                    (int)
-                    ConnectedClients.First(x => x.Key.guid == (string) request["params"]["id"]).Value["result"]["height"
-                        ])
+                    (int) ConnectedClients[(string) request["params"]["id"]].work["result"]["height"])
                 {
                     if ((string) request["method"] == "getjob")
                     {
-                        ConnectedClients[ConnectedClients.First(x => x.Key.guid == (string) request["params"]["id"]).Key
-                            ] = blob;
+                        worker abc = ConnectedClients[(string) request["params"]["id"]];
+                        abc.work = blob;
+                        ConnectedClients[(string) request["params"]["id"]] = abc;//.work = blob;
                     }
                     else
                     {
                         worker worker = new worker();
-                        worker.guid = guid;
+                        //worker.guid = guid;
                         worker.address = (string) request["params"]["login"];
-                        ConnectedClients.Add(worker, blob);
+                        worker.work = blob;
+                        ConnectedClients.Add(guid, worker);
                     }
                     job["blob"] = (string) blob["result"]["blocktemplate_blob"];
                     job["job_id"] = Guid.NewGuid().ToString();
@@ -264,12 +274,10 @@ namespace MoneroPool
                 response["result"] = result;
 
             }
-            else if (ConnectedClients.Count(x => x.Key.guid == (string) request["params"]["id"]) > 0 &&
-                     (string) request["method"] == "submit")
+            else if (ConnectedClients.ContainsKey((string) request["params"]["id"]) &&(string) request["method"] == "submit")
             {
                 JObject prevjob =
-                    ConnectedClients[ConnectedClients.First(x => x.Key.guid == (string) request["params"]["id"]).Key
-                        ];
+                    ConnectedClients[(string) request["params"]["id"]].work;
 
                 byte[] nonce = StringToByteArray((string) request["params"]["nonce"]);
 
@@ -289,9 +297,7 @@ namespace MoneroPool
                     ProcessShare(blockHash, (int)prevjob["result"]["difficulty"],
                                  BitConverter.ToInt32(StringToByteArray("33333303"), 0));
 
-                string address = ConnectedClients.First(
-                       x => x.Key.guid ==
-                            (string)request["params"]["id"]).Key.address;
+                string address = ConnectedClients[(string)request["params"]["id"]].address;
 
                 if (shareProcess == ShareProcess.ValidShare || shareProcess == ShareProcess.ValidBlock)
                 {
@@ -310,6 +316,7 @@ namespace MoneroPool
                // Console.WriteLine(response.ToString());
 
             }
+           // ConnectedClients[(string) request["params"]["id"]].;
             string s = JsonConvert.SerializeObject(response);
 
             // Console.WriteLine(s);
@@ -321,7 +328,7 @@ namespace MoneroPool
 
             client.Response.OutputStream.Close();
 
-            client.Response.Close();
+            //client.Response.Close();
 
         }
 
@@ -330,13 +337,57 @@ namespace MoneroPool
             using (minersEntities minersEntities = new minersEntities())
             {
                 Dictionary<string, long> sharePerAddress = new Dictionary<string, long>();
+                int lastPaidBlock = 0;
 
-               // int lastPaidBlock = minersEntities.
+                long totalShares = 0;
+
+                try
+                {
+                    lastPaidBlock = minersEntities.ServerInfoes.FirstOrDefault().LastPaidBlock;
+                }
+                catch
+                {
+                }
 
                 foreach (Miner miner in minersEntities.Miners)
                 {
-                    
+                    long shares = 0;
+                    foreach (var blockReward in miner.BlockRewards.Where(x => x.Block.Id > lastPaidBlock))
+                    {
+                        shares += blockReward.Shares;
+                    }
+                    totalShares += shares;
+                    sharePerAddress.Add(miner.Address, shares);
                 }
+
+                JObject blockHeader = json.InvokeMethod("getblockheaderbyheight", CurrentBlockHeight);
+
+                long reward = (long) blockHeader["result"]["blockheader"]["reward"];
+
+                double rewardPerShare = (double) reward/((double) (102*totalShares)/100);
+
+                JObject param = new JObject();
+
+                JArray destinations = new JArray();
+
+                foreach (KeyValuePair<string, long> addressShare in sharePerAddress)
+                {
+                    JObject destination = new JObject();
+                    destination["amount"] =(long) (addressShare.Value*rewardPerShare);
+                    destination["address"] = addressShare.Key;
+                    
+                    destinations.Add(destination);
+                }
+
+                param["destinations"] = destinations;
+
+                param["fee"] = 0;
+                param["mixin"] = 0;
+                param["unlock_time"] = 0;
+
+                JObject transfer = Walletjson.InvokeMethod("transfer", param);
+
+                Console.WriteLine(transfer);
             }
         }
     }
