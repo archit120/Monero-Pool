@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneroPool", "MoneroPool\MoneroPool.csproj", "{5D248243-A20D-4534-9705-7D101217AC8C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptoNight", "CryptoNight\CryptoNight.vcxproj", "{15FE032A-A306-4419-A7D2-700615E2094C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptoNight", "CryptoNight\CryptoNight.vcxproj", "{C4986E2B-4911-44CC-8124-7FD8A9112173}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,22 +31,22 @@ Global
 		{5D248243-A20D-4534-9705-7D101217AC8C}.Release|Win32.ActiveCfg = Release|Any CPU
 		{5D248243-A20D-4534-9705-7D101217AC8C}.Release|x64.ActiveCfg = Release|x64
 		{5D248243-A20D-4534-9705-7D101217AC8C}.Release|x64.Build.0 = Release|x64
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Mixed Platforms.Deploy.0 = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Win32.Build.0 = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|Win32.Deploy.0 = Debug|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Debug|x64.ActiveCfg = Debug|x64
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Any CPU.ActiveCfg = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Mixed Platforms.Deploy.0 = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Win32.ActiveCfg = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Win32.Build.0 = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|Win32.Deploy.0 = Release|Win32
-		{15FE032A-A306-4419-A7D2-700615E2094C}.Release|x64.ActiveCfg = Release|x64
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Mixed Platforms.Deploy.0 = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Win32.Build.0 = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|Win32.Deploy.0 = Debug|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Debug|x64.ActiveCfg = Debug|x64
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Any CPU.ActiveCfg = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Mixed Platforms.Deploy.0 = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Win32.ActiveCfg = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Win32.Build.0 = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|Win32.Deploy.0 = Release|Win32
+		{C4986E2B-4911-44CC-8124-7FD8A9112173}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

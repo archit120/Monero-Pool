@@ -71,18 +71,13 @@
   <ItemGroup>
     <Compile Include="INIfile.cs" />
     <Compile Include="JsonRPC.cs" />
+    <Compile Include="NativeFunctions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CryptoNight\CryptoNight.vcxproj">
-      <Project>{15fe032a-a306-4419-a7d2-700615e2094c}</Project>
-      <Name>CryptoNight</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
