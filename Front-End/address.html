@@ -1,0 +1,177 @@
+﻿
+<!DOCTYPE html>
+<html>
+    <head>
+        
+         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="product" content="Monero pool">
+        <meta name="author" content="archit">
+
+        <link href="css/metro-bootstrap.css" rel="stylesheet">
+        <link href="css/metro-bootstrap-responsive.css" rel="stylesheet">
+        <link href="css/iconFont.css" rel="stylesheet">
+
+
+        <!-- Load JavaScript Libraries -->
+        <script src="js/jquery/jquery.min.js"></script>
+        <script src="js/jquery/jquery.widget.min.js"></script>
+        <script src="js/jquery/jquery.mousewheel.js"></script>
+
+        <!-- Metro UI CSS JavaScript plugins -->
+        <script src="js/load-metro.js"></script>
+
+        <!-- Local JavaScript -->
+        <script src="js/docs.js"></script>
+        <script src="js/github.info.js"></script>
+        <title>Monero Pool : Address</title>
+
+        <style>
+        </style>
+
+    </head>
+    <body class="metro">
+        <header class="bg-dark" data-load="header.html"></header>
+        <div class ="container text-center" style="padding: 50px">
+            <h1>Address
+            </h1>
+            <h3 id="adfoundh3">No address selected. Search for one.</h3>
+            <p id="adfoundp" class="tertiary-text"></p>
+        </div>
+        
+        <div id="search" class="container" style="padding: 20px">
+            <div style="padding: 20px" class="grid no-margin">
+                <div class="row">
+                    <div class="input-control text span10 offset2" data-role="input-control">
+                        <input id="searchtext"type="text" placeholder="Type address">
+                        <button class="btn-search" tabindex="-1"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="adfounddiv" class="container" style="padding-top: 40px;padding-bottom: 40px; display: none;">
+            <div class="grid border">
+                <div class="row">
+                    <div class="span4">
+                        <h3>
+                            Total Reward 
+                            <sub>Approximate</sub>
+                        </h3>
+                    </div>
+                    <div class="span8" >
+                        <h3 id="reward">
+                        </h3> 
+                    </div>
+
+                </div> 
+                
+                <div class="row">
+                    <div class="span4">
+                        <h3>
+                            Connected Miners 
+                        </h3>
+                    </div>
+                    <div class="span8" >
+                        <h3 id="miners">
+                        </h3> 
+                    </div>
+
+                </div> 
+                
+                <div class="row">
+                    <div class="span4">
+                        <h3>
+                            Total Hash Rate 
+                        </h3>
+                    </div>
+                    <div class="span8" >
+                        <h3 id="hr">
+                        </h3> 
+                    </div>
+
+                </div> 
+            </div>
+            
+            <h2 style="padding-top: 30px">Last 10 block contributed to</h2>
+
+			
+			<div class="grid">
+				<div id="blocksfoundrow" class="row">
+					
+				</div>
+			</div>
+        </div>
+        
+        <div id="adnotfound" class="container" style="padding-top: 20px;padding-bottom: 40px; display: none;">
+            <div style="padding: 20px" class="grid no-margin">
+                <div class="row">
+                    <div class="span6">
+                        <div class="notice marker-on-right bg-lightRed padding20 text-center" style="height: 150px">
+                            <h1 class="fg-white font-size: 80px; line-height: 50px; margin-bottom: 15px">3</h1>
+                            <p class="subheader-secondary fg-white">simple steps to make sure the address is correct</p>
+                        </div>
+
+                    </div>
+                    <div class="span">
+                        <ol class="styled">
+                            <li >Check the <strong>Address</strong></li>
+                            <li >Wait for a <strong>few minutes</strong></li>
+                            <li>Go <strong>crazy?</strong></li>
+
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var qs = (function (a) {
+                if (a == "") return {};
+                var b = {};
+                for (var i = 0; i < a.length; ++i) {
+                    var p = a[i].split('=');
+                    if (p.length != 2) continue;
+                    b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+                }
+                return b;
+            })(window.location.search.substr(1).split('&'));
+
+            $("document").ready(function() {
+                if (qs["address"] != undefined) {
+                    $("#adfoundp").html(qs["address"]);
+                    $("#adfoundp").css("padding", "20px");
+                    $("#adfoundp").show();
+                    $("#adfoundh3").hide();
+                    //$("#search").hide();
+                    $("#adfounddiv").show();
+
+                    $.getJSON("address.php", "address="+qs["address"], function (data) {
+                        if (data["found"] == true) {
+                            $("#reward").html(data["reward"]);
+                            $("#miners").html(data["miners"]);
+                            $("#hr").html(data["hashrate"]);
+
+                            var items = [];
+                            data["blocks"].forEach(function (val) {
+                                items.push("<div class=\"span2 bg-lighterBlue text-center\"><h3 class=\"fg-white font-size: 20px; line-height: 15px; margin-bottom: 10px\">"+ val +"</h3></div>");
+
+                            });
+							
+							$("#blocksfoundrow").append(items);
+                        } else {
+                            $("#adfounddiv").hide();
+                            $("#search").show();
+                            $("#adnotfound").show();
+
+                        }
+                    });
+                }
+            });
+
+            $(".btn-search").on("click", function() {
+                location.search = "?address=" + $("#searchtext").val();
+            });
+        </script>
+    </body>
+</html>

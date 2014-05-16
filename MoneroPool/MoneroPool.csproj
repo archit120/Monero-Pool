@@ -62,28 +62,35 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundSaticUpdater.cs" />
+    <Compile Include="BlockPayment.cs" />
+    <Compile Include="BlockSubmitter.cs" />
+    <Compile Include="ConnectedWorker.cs" />
+    <Compile Include="CryptoNightPool.cs" />
+    <Compile Include="PoolBlock.cs" />
+    <Compile Include="StaticClasses.cs" />
     <Compile Include="INIfile.cs" />
     <Compile Include="JsonRPC.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="NativeFunctions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RedisPoolDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="MinerModel.edmx.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

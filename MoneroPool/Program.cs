@@ -40,33 +40,191 @@ namespace MoneroPool
         private static JsonRPC Walletjson = new JsonRPC("http://127.0.0.1:8082");
 
         private static Dictionary<string, worker> ConnectedClients = new Dictionary<string, worker>();
-        private static ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("localhost");
+        private static ConnectionMultiplexer redis;
 
-        private static IDatabase redisDb;
+        private static RedisPoolDatabase redisDb;
         private static IniFile config = new IniFile("config.txt");
 
         public static byte[] CryptoNight(byte[] data)
         {
             byte[] test = new byte[32];
+            //byte[] test2 = new byte[32];
             Thread t = new Thread(
-                () => NativeFunctions.cn_slow_hash(data, (ulong) data.Length, test),
+                () =>
+                    { NativeFunctions.cn_slow_hash(data, (ulong) data.Length, test);                     
+                      //  NativeFunctions.cn_slow_hash_win_32(data,(uint) data.Length, test2);
+
+                    },
                 1024*1024*8);
             t.Start();
             t.Join();
 
+            /*for (int i = 0; i < 32; i++)
+            {
+                if(test[i]!=test2[i])
+                    throw new Exception();
+            }    */
             return test;
         }
 
-    private static void Main(string[] args)
+        private static uint SetCompact(uint nCompact)
         {
-           byte[] test =  CryptoNight(new byte[] {0x00, 0x01});
+            BigInteger val = new BigInteger();
+            uint nSize = nCompact >> 24;
+            bool fNegative = (nCompact & 0x00800000) != 0;
+            uint nWord = nCompact & 0x007fffff;
+            if (nSize <= 3)
+            {
+                nWord >>= (int) (8*(3 - nSize));
+                val = new BigInteger(nWord);
+            }
+            else
+            {
+                val = new BigInteger(nWord);
+                val <<= (int) (8*(nSize - 3));
+            }
+            if (fNegative)
+                return 0;
+            return BitConverter.ToUInt32(val.ToByteArray(),val.ToByteArray().Length - 4);
+        }
 
-            json = new JsonRPC(config.IniReadValue("daemon-json-rpc"));
+        public static int BN_num_bytes(BigInteger number)
+        {
+            if (number == 0)
+            {
+                return 0;
+            }
+            return 1 + (int)Math.Floor(BigInteger.Log(BigInteger.Abs(number), 2)) / 8;
+        }
+
+        public static ulong GetCompact(uint Target)
+        {
+            uint nSize = (uint)BN_num_bytes(Target);
+            ulong nCompact = 0;
+            if (nSize <= 3)
+                nCompact = Target << (int)(8 * (3 - nSize));
+            else
+            {
+                BigInteger big;
+                big = Target >> (int)(8 * (nSize - 3));
+                nCompact = (ulong)big;
+            }
+            // The 0x00800000 bit denotes the sign.
+            // Thus, if it is already set, divide the mantissa by 256 and increase the exponent.
+            if ((nCompact & 0x00800000) == 1)
+            {
+                nCompact >>= 8;
+                nSize++;
+            }
+            nCompact |= nSize << 24;
+            nCompact |= (ulong)((Target & 0x00800000) != 0 ? 0x00800000 : 0);
+            return nCompact;
+        }
+        public static ulong setCompact(uint nCompact)
+        {
+            uint nSize = nCompact >> 24;
+            bool fNegative = (nCompact & 0x00800000) != 0;
+            uint nWord = nCompact & 0x007fffff;
+            byte[] hashTarget = new byte[32];
+            if (nSize <= 3)
+            {
+                nWord >>= (int)(8 * (3 - nSize));
+                hashTarget[0] = (byte)nWord;
+            }
+            else
+            {
+                hashTarget[0] = (byte)nWord;
+                for (uint f = 0; f < (nSize - 3); f++)
+                {
+                    // shift by one byte
+                    hashTarget[7] = (byte)((hashTarget[7] << 8) | (hashTarget[6] >> 24));
+                    hashTarget[6] = (byte)((hashTarget[6] << 8) | (hashTarget[5] >> 24));
+                    hashTarget[5] = (byte)((hashTarget[5] << 8) | (hashTarget[4] >> 24));
+                    hashTarget[4] = (byte)((hashTarget[4] << 8) | (hashTarget[3] >> 24));
+                    hashTarget[3] = (byte)((hashTarget[3] << 8) | (hashTarget[2] >> 24));
+                    hashTarget[2] = (byte)((hashTarget[2] << 8) | (hashTarget[1] >> 24));
+                    hashTarget[1] = (byte)((hashTarget[1] << 8) | (hashTarget[0] >> 24));
+                    hashTarget[0] = (byte)((hashTarget[0] << 8));
+                }
+            }
+            if (fNegative)
+            {
+                // if negative bit set, set zero hash
+                for (uint i = 0; i < 8; i++)
+                    hashTarget[i] = 0;
+            }
+            return BitConverter.ToUInt64(hashTarget, 23);
+        }
+
+        static uint swapEndianness(uint x)
+        {
+            return ((x & 0x000000ff) << 24) +  // First byte
+                   ((x & 0x0000ff00) << 8) +   // Second byte
+                   ((x & 0x00ff0000) >> 8) +   // Third byte
+                   ((x & 0xff000000) >> 24);   // Fourth byte
+        }
+
+    private static void Main(string[] args)
+    {
+
+
+
+     
+                     List<byte> test = new List<byte>(StringToByteArray(
+          "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
+            //test.Add(0x00);
+
+            BigInteger diff1 = new BigInteger(test.ToArray());
+
+        for (uint i = 2; i < 1025; i++)
+        {
+
+              int shift = 29;
+
+      /* convert diff to nBits */
+
+      /*
+	this currently is not exact reverse of the other conversions
+	for larg diff
+      */
+
+      double ftarg = (double)0x0000ffff / i; 
+      /* more accurate but not how bitcoin does it */
+      /* new version of bitcoin should do this */
+
+      while (ftarg < (double)0x00008000) {
+	shift--;
+	ftarg *= 256.0;
+      }
+
+      while (ftarg >= (double)0x00800000) {
+	shift++;
+	ftarg /= 256.0;
+      }
+
+      //    printf("normalized diff %g, shift %d\n", ftarg, shift);
+
+      uint nBits = (uint)(ftarg + (shift << 24));
+
+            Console.WriteLine(SetCompact(nBits));//target));
+
+            
+        }
+     
+
+            //byte[] testing = idk.ToByteArray();
+
+            //idk = new BigInteger(testing.AsEnumerable().Reverse().ToArray());
             Walletjson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
 
-            redis = ConnectionMultiplexer.Connect(config.IniReadValue("redis-server"));
+        /*ConfigurationOptions config = new ConfigurationOptions();
+        config.EndPoints.Add(new IPEndPoint(i));
+        redis = ConnectionMultiplexer.Connect(new ConfigurationOptions());new Ipconfig.IniReadValue("redis-server"));    */
 
-            redisDb = redis.GetDatabase();
+            redisDb = new RedisPoolDatabase(redis.GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
+
+        Statics.json = new JsonRPC(config.IniReadValue());
+            Statics.Walletjson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
 
             JObject test2 = json.InvokeMethod("getblockcount");
             CurrentBlockHeight = (int) test2["result"]["count"];
@@ -77,22 +235,22 @@ namespace MoneroPool
 
             while (true)
             {
+             /*   ConnectedClients =
+                    ConnectedClients.AsParallel()
+                                    .Where(
+                                        x =>
+                                        (DateTime.Now - x.Value.last_heard).Seconds <
+                                        int.Parse(config.IniReadValue("client-timeout-seconds"))).ToDictionary(x=>x.Key,x=>x.Value);  */
+
 
                 Thread.Sleep(5000);
                 test2 = json.InvokeMethod("getblockcount");
                 CurrentBlockHeight = (int) test2["result"]["count"];
 
-             
-                /*ConnectedClients =
-                    ConnectedClients.AsParallel()
-                                    .Where(x => (DateTime.Now - x.Value.last_heard).Seconds < 60)
-                                    .ToDictionary(x => x.Key, x => x.Value); */
-                //, new JObject(new JProperty("reserve_size", 4), new JProperty("wallet_address", "41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV")));
-
-            }
+             }
         }
 
-        private static int CurrentBlockHeight;
+        public static int CurrentBlockHeight;
 
         private static async void StartListening()
         {
@@ -133,42 +291,90 @@ namespace MoneroPool
 
         public static void IncreaseShareCount(string address)
         {
-            RedisValue[] blocks = redisDb.SetMembers("blocks");
-            if (blocks.Count(x => x == CurrentBlockHeight) == 0)
+            redisDb.UpdateLists();
+            List<byte> test = new List<byte>(StringToByteArray(
+          "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+            test.Add(0x00);
+            BigInteger diff = new BigInteger(test.ToArray());
+
+            BigInteger idk = diff/512;
+
+            byte[] testing = idk.ToByteArray();
+
+            idk = new BigInteger(testing.AsEnumerable().Reverse().ToArray());
+
+            Block Block;
+            Miner Miner;
+            BlockReward BlockReward;
+
+            try
             {
-                redisDb.SetAdd("blocks", CurrentBlockHeight);
-            }
-
-            RedisValue[] miners = redisDb.SetMembers("miners");
-            if (miners.Count(x => x == address) == 0)
-            {
-                redisDb.SetAdd("miners", address);
-            }
-
-
-            RedisValue[] blockrewards = redisDb.SetMembers("blockreward");
-            bool exists = false;
-            blockrewards.ToList().ForEach(x =>
+                if (!redisDb.Blocks.Any(block => block.BlockHeight == CurrentBlockHeight))
                 {
-                    HashEntry[] blockreward = redisDb.HashGetAll((string) x);
-                    exists =
-                        blockreward.Count(x2 => x2.Name == "address" && x2.Value == address) > 0 &&
-                        blockreward.Count(x2 => x2.Name == "block" && x2.Value == CurrentBlockHeight) > 0;
-                    if (exists)
-                        redisDb.HashSet((string) x, "shares",(int)(blockreward.First(x2 => x2.Name == "shares").Value)+ 1);
-                });
+                    Block = new Block(CurrentBlockHeight);
+                    Console.WriteLine("New block with id:{0} and identifier:{1}", Block.BlockHeight, Block.Identifier);
+                }
+                else
+                {
+                    Block = redisDb.Blocks.First(block => block.BlockHeight == CurrentBlockHeight);
+                    Console.WriteLine("Existing block with id:{0} and identifier:{1}", Block.BlockHeight, Block.Identifier);
 
-            if (!exists)
+                }
+
+                if (!redisDb.Miners.Any(miner => miner.Address == address))
+                {
+                    Miner = new Miner(address, 0);
+                    Console.WriteLine("New Miner with address:{0} and identifier:{1}", Miner.Address, Miner.Identifier);
+
+                }
+                else
+                {
+                    Miner = redisDb.Miners.First(miner => miner.Address == address);
+                    Console.WriteLine("Existing Miner with address:{0} and identifier:{1}", Miner.Address, Miner.Identifier);
+
+                }
+
+                if (
+                    !redisDb.BlockRewards.Any(
+                        blockreward => blockreward.Block == Block.Identifier && blockreward.Miner == Miner.Identifier))
+                {
+                    BlockReward blockReward = new BlockReward(Miner.Identifier, Block.Identifier);
+                    Share share = new Share(blockReward.Identifier, 1);
+
+                    blockReward.Shares.Add(share.Identifier);
+
+                    Miner.BlockReward.Add(blockReward.Identifier);
+
+                    Block.BlockRewards.Add(blockReward.Identifier);
+
+                    redisDb.SaveChanges(Block);
+                    redisDb.SaveChanges(blockReward);
+                    redisDb.SaveChanges(share);
+                    redisDb.SaveChanges(Miner);
+
+                }
+                else
+                {
+                    BlockReward blockReward = redisDb.BlockRewards.First(
+                        blockreward => blockreward.Block == Block.Identifier && blockreward.Miner == Miner.Identifier);
+
+                    Share share = new Share(blockReward.Identifier, 1);
+
+                    blockReward.Shares.Add(share.Identifier);
+
+                    Miner.BlockReward.Add(blockReward.Identifier);
+
+                    Block.BlockRewards.Add(blockReward.Identifier);
+
+                    redisDb.SaveChanges(Block);
+                    redisDb.SaveChanges(blockReward);
+                    redisDb.SaveChanges(share);
+                    redisDb.SaveChanges(Miner);
+                }
+            }
+            catch (Exception e)
             {
                 
-                RedisValue blockreward = Guid.NewGuid().ToString();
-                HashEntry[] blockrewardob = new HashEntry[3];
-                blockrewardob[0] = new HashEntry("address", address);
-                blockrewardob[1] = new HashEntry("block", CurrentBlockHeight);
-                blockrewardob[2] = new HashEntry("shares", 1);
-
-                redisDb.SetAdd("blockreward", blockreward);
-                redisDb.HashSet((string) blockreward, blockrewardob);
             }
         }
 
@@ -179,12 +385,10 @@ namespace MoneroPool
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
             test.Add(0x00);
             BigInteger diff = new BigInteger(test.ToArray());
-            BigInteger block = new BigInteger(blockHash);
-            BigInteger blockDiff =  diff / block;
-            /*BigInteger block2 = new BigInteger(blockHash.Reverse().ToArray());
-            BigInteger blockDiff2 = diff / block2;
-            System.IO.File.AppendAllText("test.txt",string.Format("{0}/{1}={2}\n{0}/{3}={4}\n", diff,block,blockDiff,block2,blockDiff2));
-            */
+            List<byte> test2 = blockHash.Reverse().ToList();
+            test2.Add(0x00);
+            BigInteger block = new BigInteger(test2.ToArray());
+            BigInteger blockDiff = diff / block;
             if (blockDiff >= blockDifficulty)
             {
                 Console.WriteLine("Block found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
@@ -315,12 +519,18 @@ namespace MoneroPool
                     Array.Copy(nonce, 0, blockdata, 39, nonce.Length);
                     JObject result = new JObject();
                     byte[] blockHash = CryptoNight(blockdata);
+                    
 
                     //Console.WriteLine(BitConverter.ToString(test).Replace("-", ""));
 
-                     if (((string) request["params"]["result"]).ToUpper() !=
-                         BitConverter.ToString(blockHash).Replace("-", ""))
-                         throw new Exception(); 
+                    //Console.WriteLine(((string)request["params"]["result"]).ToUpper() + " vs " + BitConverter.ToString(blockHash).Replace("-", "") +" for "+BitConverter.ToString(blockdata).Replace("-"));
+                    if (((string) request["params"]["result"]).ToUpper() !=
+                        BitConverter.ToString(blockHash).Replace("-", ""))
+                    {
+                        Console.WriteLine("Something's wrong");
+                        
+                    //    throw new Exception();
+                    }
 
 
                     ShareProcess shareProcess =
@@ -383,37 +593,42 @@ namespace MoneroPool
         private static async void InitiatePayments()
         {
 
-            Dictionary<string, long> sharePerAddress = new Dictionary<string, long>();
+            Dictionary<string, double> sharePerAddress = new Dictionary<string, double>();
             int lastPaidBlock = 0;
 
             long totalShares = 0;
 
             try
             {
-                lastPaidBlock = int.Parse(redisDb.StringGet("lastpaidblock"));
-                redisDb.StringSet("lastpaidblock", CurrentBlockHeight);
+                lastPaidBlock = int.Parse(redisDb.RedisDb.StringGet("lastpaidblock"));
+                redisDb.RedisDb.StringSet("lastpaidblock", CurrentBlockHeight);
             }
             catch
             {
                 lastPaidBlock = 0;
-                redisDb.StringSet("lastpaidblock", CurrentBlockHeight);
+                redisDb.RedisDb.StringSet("lastpaidblock", CurrentBlockHeight);
             }
 
-            RedisValue[] blockrewards = redisDb.SetMembers("blockreward");
-            foreach (RedisValue rBlockReward in blockrewards)
+            redisDb.UpdateLists();
+
+            foreach (var miner in redisDb.Miners)
             {
-                HashEntry[] blockReward = redisDb.HashGetAll((string) rBlockReward);
-                if ((int) blockReward.First(x => x.Name == "block").Value < lastPaidBlock)
+                sharePerAddress.Add(miner.Address, 0);
+                foreach (
+                    var blockreward in
+                        redisDb.BlockRewards.Where(
+                            x =>
+                            x.Miner == miner.Identifier &&
+                            redisDb.Blocks.First(x2 => x2.Identifier == x.Block).BlockHeight > lastPaidBlock))
                 {
-                }
-                else
-                {
-                    string address = blockReward.First(x => x.Name == "address").Value;
-                    if (!sharePerAddress.ContainsKey(address))
+                    double shares = 0;
+                    foreach (var share in redisDb.Shares)
                     {
-                        sharePerAddress.Add(address, 0);
+                        shares += share.Value;
                     }
-                    sharePerAddress[address] += int.Parse(blockReward.First(x => x.Name == "shares").Value);
+
+                    sharePerAddress[miner.Address] = shares;
+
                 }
             }
 
@@ -429,7 +644,7 @@ namespace MoneroPool
 
             JArray destinations = new JArray();
 
-            foreach (KeyValuePair<string, long> addressShare in sharePerAddress)
+            foreach (KeyValuePair<string, double> addressShare in sharePerAddress)
             {
                 JObject destination = new JObject();
                 destination["amount"] = (long) (addressShare.Value*rewardPerShare);

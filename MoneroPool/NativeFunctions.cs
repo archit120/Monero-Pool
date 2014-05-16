@@ -31,7 +31,7 @@ namespace MoneroPool
                 switch (Environment.Is64BitOperatingSystem)
                 {
                     case true:
-                        cn_slow_hash_win_64(data, length, hash);
+                        cn_slow_hash_win_64(data, (uint)length, hash);
                         break;
                     case false:
                         cn_slow_hash_win_32(data,(uint)length, hash);

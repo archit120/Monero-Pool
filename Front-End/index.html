@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        
+         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="product" content="Monero pool">
+        <meta name="author" content="archit">
+
+        <link href="css/metro-bootstrap.css" rel="stylesheet">
+        <link href="css/metro-bootstrap-responsive.css" rel="stylesheet">
+        <link href="css/iconFont.css" rel="stylesheet">
+        <link href="js/prettify/prettify.css" rel="stylesheet">
+
+
+        <!-- Load JavaScript Libraries -->
+        <script src="js/jquery/jquery.min.js"></script>
+        <script src="js/jquery/jquery.widget.min.js"></script>
+        <script src="js/jquery/jquery.mousewheel.js"></script>
+        <script src="js/prettify/prettify.js"></script>
+
+        <!-- Metro UI CSS JavaScript plugins -->
+        <script src="js/load-metro.js"></script>
+
+        <!-- Local JavaScript -->              
+        <script src="js/docs.js"></script>
+        <script src="js/github.info.js"></script>
+        <title>Monero Pool : Home</title>
+
+        <style>
+        </style>
+
+    </head>
+    <body class="metro">
+        <header class="bg-dark" data-load="header.html"></header>
+        <div class ="container text-center" style="padding: 50px">
+            <h1>Home
+            </h1>
+            
+            <h3> The best Cryptonight pool.</h3>
+            
+        </div>
+        <div class="container">
+            <div style="padding: 20px" class="grid no-margin">
+                <div class="row">
+                    <div class="span4">
+                        <div class="notice marker-on-right bg-lighterBlue padding20 text-center" style="height: 150px">
+                            <h1 class="fg-white font-size: 80px; line-height: 50px; margin-bottom: 15px">3</h1>
+                            <p class="subheader-secondary fg-white">simple steps to start mining and start earning</p>
+                        </div>
+                       
+
+                    </div>
+                    <div class="span">
+                        <ol class="styled">
+                            <li >Create a new address with <strong>Monero Wallet</strong></li>
+                            <li >Start <strong>simpleminer</strong> with <strong>--pool-ip=iphere --login=address --pass=x</strong></li>
+                            <li>Check your <strong>revenue here</strong></li>
+
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container text-center" style="padding-top: 80px; font-size: 80px">
+            <h2 class="font-size: 80px">Top 10 Adresses</h2>
+                 
+            <div class="grid" id="top10">
+                <div class="row border">
+                    <div class="span8">
+                        <h3>
+                        Address
+                            </h3>
+                    </div>
+                    
+                    <div class="span4 offset1">
+                        <h3>MHash/s</h3>
+                    </div>
+                </div>
+                
+            </div>  
+            </div>
+        <script>
+            $("document").ready(function() {
+                $.getJSON("top10.php", function (data) {
+                    var items = [];
+                    $.each(data, function (key, val) {
+                        items.push("<div class='row'> <div class='span8'><p>" + key + "</p></div><div class='span4 offset1'><p>" + val + "</p></div></div>");
+                    });
+                    $("#top10").append(items);
+                });
+            });
+            
+        </script>
+    </body>
+</html>
