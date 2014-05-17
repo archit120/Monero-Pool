@@ -11,6 +11,7 @@ namespace MoneroPool
         public byte[] BlockData { get; set; }
         public int BlockHeight { get; set; }
         public string BlockHash { get; set; }
+        
         public PoolBlock(byte[] blockData, int blockHeight, string blockHash)
         {
             BlockData = blockData;

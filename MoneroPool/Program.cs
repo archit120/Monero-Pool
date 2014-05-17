@@ -166,65 +166,45 @@ namespace MoneroPool
 
     private static void Main(string[] args)
     {
+        ConfigurationOptions configR  =new ConfigurationOptions();
+        configR.ResolveDns = true;
+        configR.EndPoints.Add(config.IniReadValue("redis-server"));
 
+        Statics.RedisDb = new RedisPoolDatabase(ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
+        Statics.BlocksPendingPayment = new List<PoolBlock>();
+        Statics.BlocksPendingSubmition = new List<PoolBlock>();
+        Statics.Config = new IniFile("config.txt");
+        Statics.ConnectedClients = new Dictionary<string, ConnectedWorker>();
+        Statics.DaemonJson = new JsonRPC(config.IniReadValue("daemon-json-rpc"));
+        Statics.WalletJson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
+        
 
+        BackgroundSaticUpdater backgroundSaticUpdater = new BackgroundSaticUpdater();
+        backgroundSaticUpdater.Start();
 
-     
-                     List<byte> test = new List<byte>(StringToByteArray(
-          "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
-            //test.Add(0x00);
+        BlockPayment blockPayment = new BlockPayment();
+        blockPayment.Start();
 
-            BigInteger diff1 = new BigInteger(test.ToArray());
+        BlockSubmitter blockSubmitter = new BlockSubmitter();
+        blockSubmitter.Start();
 
-        for (uint i = 2; i < 1025; i++)
+        CryptoNightPool cryptoNightPool = new CryptoNightPool();
+        cryptoNightPool.Start();
+
+        while (true)
         {
-
-              int shift = 29;
-
-      /* convert diff to nBits */
-
-      /*
-	this currently is not exact reverse of the other conversions
-	for larg diff
-      */
-
-      double ftarg = (double)0x0000ffff / i; 
-      /* more accurate but not how bitcoin does it */
-      /* new version of bitcoin should do this */
-
-      while (ftarg < (double)0x00008000) {
-	shift--;
-	ftarg *= 256.0;
-      }
-
-      while (ftarg >= (double)0x00800000) {
-	shift++;
-	ftarg /= 256.0;
-      }
-
-      //    printf("normalized diff %g, shift %d\n", ftarg, shift);
-
-      uint nBits = (uint)(ftarg + (shift << 24));
-
-            Console.WriteLine(SetCompact(nBits));//target));
-
             
         }
-     
+        /*    redisDb = new RedisPoolDatabase(redis.GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
 
-            //byte[] testing = idk.ToByteArray();
+             Block bl = new Block(23);
+        bl.Found = false;
+        bl.Founder = "as";
+        bl.BlockRewards.Add("dh");
 
-            //idk = new BigInteger(testing.AsEnumerable().Reverse().ToArray());
-            Walletjson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
-
-        /*ConfigurationOptions config = new ConfigurationOptions();
-        config.EndPoints.Add(new IPEndPoint(i));
-        redis = ConnectionMultiplexer.Connect(new ConfigurationOptions());new Ipconfig.IniReadValue("redis-server"));    */
-
-            redisDb = new RedisPoolDatabase(redis.GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
-
-        Statics.json = new JsonRPC(config.IniReadValue());
-            Statics.Walletjson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
+        redisDb.SaveChanges<Block>(bl);
+        //Statics.json = new JsonRPC(config.IniReadValue());
+            //Statics.Walletjson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
 
             JObject test2 = json.InvokeMethod("getblockcount");
             CurrentBlockHeight = (int) test2["result"]["count"];
@@ -243,11 +223,11 @@ namespace MoneroPool
                                         int.Parse(config.IniReadValue("client-timeout-seconds"))).ToDictionary(x=>x.Key,x=>x.Value);  */
 
 
-                Thread.Sleep(5000);
+                /*Thread.Sleep(5000);
                 test2 = json.InvokeMethod("getblockcount");
                 CurrentBlockHeight = (int) test2["result"]["count"];
 
-             }
+             }        */
         }
 
         public static int CurrentBlockHeight;
@@ -299,9 +279,7 @@ namespace MoneroPool
 
             BigInteger idk = diff/512;
 
-            byte[] testing = idk.ToByteArray();
-
-            idk = new BigInteger(testing.AsEnumerable().Reverse().ToArray());
+            idk = new BigInteger(idk.ToByteArray().Reverse().ToArray());
 
             Block Block;
             Miner Miner;

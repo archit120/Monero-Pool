@@ -1,5 +1,5 @@
 <?php
-
+/*
 require 'Predis/Autoloader.php';
 
 Predis\Autoloader::register();
@@ -51,5 +51,9 @@ else
 	$response["block"] = $blocks;
 	
 	echo(json_encode($response));
-}
+}*/
+
+$testing = object();
+$testing->hello ="15";
+var_dump($testing);
 ?>

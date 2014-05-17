@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
+using StackExchange.Redis;
 
 namespace MoneroPool
 {
@@ -24,6 +25,13 @@ namespace MoneroPool
 
             return crytoNightHash;
         }
+    }
+
+    public enum ShareProcess
+    {
+        ValidShare,
+        ValidBlock,
+        InvalidShare
     }
 
     public static class Statics
@@ -44,7 +52,9 @@ namespace MoneroPool
 
         public static volatile List<PoolBlock> BlocksPendingPayment;
 
+        public static volatile Dictionary<string, ConnectedWorker> ConnectedClients = new Dictionary<string, ConnectedWorker>();
 
+        public static volatile RedisPoolDatabase RedisDb;
     }
 
     public static class Helpers
@@ -70,7 +80,7 @@ namespace MoneroPool
 
         }
 
-        public static int WorkerVardiffDifficulty(ConnectedWorker worker)
+        public static uint WorkerVardiffDifficulty(ConnectedWorker worker)
         {
             //We calculate average of last 4 shares.
 
@@ -89,30 +99,47 @@ namespace MoneroPool
             {
                 if (deviance > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
                     deviance = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                return (int)((worker.CurrentDifficulty*(100 + deviance))/100);
+                return (uint)((worker.CurrentDifficulty*(100 + deviance))/100);
             }
             else
             {
              if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
                     deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                return (int)((worker.CurrentDifficulty*(100 + deviance))/100);
+                return (uint)((worker.CurrentDifficulty*(100 + deviance))/100);
             }
         }
 
-
-        public static string GenerateUniqueWork()
+        public static string GenerateUniqueWork(ref int seed)
         {
+            seed = Statics.ReserveSeed++;
             byte[] work = StringToByteArray((string) Statics.CurrentBlockTemplate["blocktemplate_blob"]);
 
-            Array.Copy(BitConverter.GetBytes(Statics.ReserveSeed++), 0, work, (int)Statics.CurrentBlockTemplate["reserve_size"], 4);
+            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserve_offset"], 4);
 
             return BitConverter.ToString(work).Replace("-", "");
         }
 
-        public static uint GetTargetFromDifficulty(int difficulty)
+        public static byte[] GenerateShareWork(int seed)
+        {
+            byte[] work = StringToByteArray((string)Statics.CurrentBlockTemplate["blocktemplate_blob"]);
+
+            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserve_offset"], 4);
+
+            return work;
+        }
+
+        public static uint SwapEndianness(uint x)
+        {
+            return ((x & 0x000000ff) << 24) +  // First byte
+                   ((x & 0x0000ff00) << 8) +   // Second byte
+                   ((x & 0x00ff0000) >> 8) +   // Third byte
+                   ((x & 0xff000000) >> 24);   // Fourth byte
+        }
+
+        public static uint GetTargetFromDifficulty(uint difficulty)
         {
             BigInteger diff = new BigInteger(StringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
-            return BitConverter.ToUInt32((diff/difficulty).ToByteArray().Take(4).Reverse().ToArray(), 0);
+            return SwapEndianness(BitConverter.ToUInt32((diff/difficulty).ToByteArray().Take(4).Reverse().ToArray(), 0));
         }
 
         public static string GetRequestBody(HttpListenerRequest request)
@@ -136,7 +163,29 @@ namespace MoneroPool
                              .ToArray();
         }
 
+        public static ShareProcess ProcessShare(byte[] blockHash, int blockDifficulty, uint shareDifficulty)
+        {
+            BigInteger diff = new BigInteger(StringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
 
+            List<byte> blockList = blockHash.Reverse().ToList();
+            blockList.Add(0x00);
+            BigInteger block = new BigInteger(blockList.ToArray());
+
+            BigInteger blockDiff = diff / block;
+            if (blockDiff >= blockDifficulty)
+            {
+                Logger.Log(Logger.LogLevel.General ,"Block found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
+                return ShareProcess.ValidBlock;
+
+            }
+            else if (blockDiff <= shareDifficulty)
+            {
+               Logger.Log(Logger.LogLevel.Error, "Invalid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
+                return ShareProcess.InvalidShare;
+            }
+           Logger.Log(Logger.LogLevel.General, "Valid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
+            return ShareProcess.ValidShare;
+        }
 
     }
 }

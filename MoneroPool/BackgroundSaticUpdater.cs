@@ -10,10 +10,25 @@ namespace MoneroPool
     public class BackgroundSaticUpdater
     {
         public BackgroundSaticUpdater()
-        {}
+        {
+            
+        }
 
         public async void Start()
         {
+            await Task.Yield();
+            Statics.CurrentBlockTemplate = (JObject)
+                                           (await
+                                            Statics.DaemonJson.InvokeMethodAsync("getblocktemplate",
+                                                                                 new JObject(
+                                                                                     new JProperty(
+                                                                                         "reserve_size", 4),
+                                                                                     new JProperty(
+                                                                                         "wallet_address",
+                                                                                         Statics.Config
+                                                                                                .IniReadValue(
+                                                                                                    "wallet-address")))))
+                                               ["result"];
             while (true)
             {
                 int newBlockHeight =
@@ -35,7 +50,7 @@ namespace MoneroPool
 
                     Statics.CurrentBlockHeight = newBlockHeight;
                 }
-               
+                System.Threading.Thread.Sleep(5000);
             }
         }
     }

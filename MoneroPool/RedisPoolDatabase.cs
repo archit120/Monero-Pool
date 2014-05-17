@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace MoneroPool
 {
     public class RedisPoolDatabase
     {
         public IDatabase RedisDb { get; set; }
+
+        public PoolInformation Information { get; set; }
 
         public List<Block> Blocks { get; private set; }
         public List<Miner> Miners { get; private set; }
@@ -33,69 +37,140 @@ namespace MoneroPool
             MinerWorkers = new List<MinerWorker>();
 
             //Start with blocks
-            HashEntry[] blocks = RedisDb.HashGetAll("blocks");
-            Parallel.ForEach(blocks, block => Blocks.Add(JsonConvert.DeserializeObject<Block>(block.Value)));
+            Deserialize(Blocks);
+            Deserialize(Miners);
+            Deserialize(BlockRewards);
+            Deserialize(Shares);
+            Deserialize(MinerWorkers);
 
-            HashEntry[] miners = RedisDb.HashGetAll("miners");
-            Parallel.ForEach(miners, miner => Miners.Add(JsonConvert.DeserializeObject<Miner>(miner.Value)));
-
-            HashEntry[] blockrewards = RedisDb.HashGetAll("blockrewards");
-            Parallel.ForEach(blockrewards, blockreward => BlockRewards.Add(JsonConvert.DeserializeObject<BlockReward>(blockreward.Value)));
-
-            HashEntry[] shares = RedisDb.HashGetAll("shares");
-            Parallel.ForEach(shares, share => Shares.Add(JsonConvert.DeserializeObject<Share>(share.Value)));
-
-            HashEntry[] minerworkers = RedisDb.HashGetAll("minerworkers");
-            Parallel.ForEach(minerworkers, minerworker => MinerWorkers.Add(JsonConvert.DeserializeObject<MinerWorker>(minerworker.Value)));
         }
 
-        public void SaveChanges(Block block)
-        {
-            string stringify = JsonConvert.SerializeObject(block);
-            RedisDb.HashSet( "blocks",block.Identifier, stringify);
 
-            UpdateLists();
+        private void Deserialize<T>(List<T> obj)
+        {
+            Type t = typeof(T);
+            RedisValue[] redisValues = RedisDb.SortedSetRangeByScore(t.GetTypeInfo().Name);
+            foreach (string redisValue in redisValues)
+            {
+                T tobj = (T) Activator.CreateInstance(t);
+                HashEntry[] hashEntries = RedisDb.HashGetAll(redisValue);
+                foreach (var property in t.GetProperties())
+                {
+                    if (property.PropertyType == typeof (Int32))
+                    {
+                        property.SetValue(tobj,
+                                         JsonConvert.DeserializeObject<Int32>(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                    else if(property.PropertyType==typeof(List<string>))
+                    {
+                        property.SetValue(tobj,
+                                        JsonConvert.DeserializeObject <List<string>>(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                    else
+                    {
+                        property.SetValue(tobj,
+                                        JsonConvert.DeserializeObject(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                } 
+                foreach (var field in t.GetFields())
+                {
+                    if (field.GetType() == typeof(Int32))
+                    {
+                        field.SetValue(tobj,
+                                      (Int32)JsonConvert.DeserializeObject(
+                                           hashEntries.First(x => x.Name == field.Name).Value));
+                    }
+                    else
+                    {
+                        field.SetValue(tobj,
+                                       JsonConvert.DeserializeObject(
+                                           hashEntries.First(x => x.Name == field.Name).Value)); 
+                    }
+                }
+                obj.Add(tobj);
+            }
+        }
+
+        private void SaveChanges<T>(T obj)
+        {
+            Type t = typeof (T);
+            PropertyInfo[] properties = t.GetProperties();
+            FieldInfo[] fields = t.GetFields();
+            HashEntry[] hashEntries = new HashEntry[properties.Length + fields.Length];
+            int i = 0;
+            foreach (PropertyInfo property in properties)
+            {
+                hashEntries[i] = new HashEntry(property.Name, JsonConvert.SerializeObject(property.GetValue(obj)));
+                i++;
+            } 
+            foreach (FieldInfo field in fields)
+            {
+                hashEntries[i] = new HashEntry(field.Name, JsonConvert.SerializeObject(field.GetValue(obj)));
+                i++;
+            }
+
+            string guid = Guid.NewGuid().ToString();
+            RedisDb.SortedSetAdd(t.GetTypeInfo().Name,guid,RedisDb.SortedSetLength(t.GetTypeInfo().Name));
+            RedisDb.HashSet(guid, hashEntries);
         }
 
         public void SaveChanges(Miner miner)
         {
-            string stringify = JsonConvert.SerializeObject(miner);
-            RedisDb.HashSet("miners",miner.Identifier, stringify);
-
-            UpdateLists();
+            SaveChanges<Miner>(miner);
+            Miners.Add(miner);
 
         }
 
         public void SaveChanges(MinerWorker minerWorker)
         {
-            string stringify = JsonConvert.SerializeObject(minerWorker);
-            RedisDb.HashSet("minerworkers",minerWorker.Identifier, stringify);
-
-            UpdateLists();
+            SaveChanges<MinerWorker>(minerWorker);
+            MinerWorkers.Add(minerWorker);
 
         }
 
         public void SaveChanges(Share share)
         {
-            string stringify = JsonConvert.SerializeObject(share);
-            RedisDb.HashSet("shares", share.Identifier, stringify);
-            UpdateLists();
+            SaveChanges<Share>(share);
+            Shares.Add( share);
 
         }
 
-        public void SaveChanges(BlockReward blockreward)
+        public void SaveChanges(BlockReward blockReward)
         {
-            string stringify = JsonConvert.SerializeObject(blockreward);
-            RedisDb.HashSet("blockrewards", blockreward.Identifier, stringify);
-            UpdateLists();
+            SaveChanges<BlockReward>(blockReward);
+            BlockRewards.Add( blockReward);
 
+        }
+        public void SaveChanges(Block block)
+        {
+            SaveChanges<Block>(block);
+            Blocks.Add(block);
+
+        }
+
+    }
+
+    public class PoolInformation
+    {
+        public int LastPaidBlock;
+        public int CurrentBlock;
+        public int NewtworkHashRate { get; set; }
+        public int PoolHashRate { get; set; }
+
+        public PoolInformation()
+        {
+            
         }
     }
 
     public class Block
     {
         public string Identifier { get; set; }
-
+        public string Founder { get; set; }
+        public bool Found { get; set; }
         public int BlockHeight { get; set; }
 
         public List<string> BlockRewards { get; set; }

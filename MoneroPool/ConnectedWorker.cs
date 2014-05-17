@@ -11,7 +11,8 @@ namespace MoneroPool
         public string Address { get; set; }
         public DateTime LastSeen { get; set; }
         public List<KeyValuePair<TimeSpan,ulong>> ShareDifficulty { get; private set; }
-        public int CurrentDifficulty { get; private set; }
+        public uint CurrentDifficulty { get; set; }
+        public int JobSeed { get; set; }
 
         private DateTime _lastjoborshare;
         private DateTime _share;
