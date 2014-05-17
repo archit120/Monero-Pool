@@ -123,7 +123,7 @@ namespace MoneroPool
             seed = Statics.ReserveSeed++;
             byte[] work = StringToByteArray((string) Statics.CurrentBlockTemplate["blocktemplate_blob"]);
 
-            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserve_offset"], 4);
+            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserved_offset"], 4);
 
             return BitConverter.ToString(work).Replace("-", "");
         }
@@ -132,7 +132,7 @@ namespace MoneroPool
         {
             byte[] work = StringToByteArray((string)Statics.CurrentBlockTemplate["blocktemplate_blob"]);
 
-            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserve_offset"], 4);
+            Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserved_offset"], 4);
 
             return work;
         }
@@ -148,7 +148,20 @@ namespace MoneroPool
         public static uint GetTargetFromDifficulty(uint difficulty)
         {
             BigInteger diff = new BigInteger(StringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
-            return SwapEndianness(BitConverter.ToUInt32((diff/difficulty).ToByteArray().Take(4).Reverse().ToArray(), 0));
+
+            var padded = new byte[32];
+
+            var t2 = (diff/difficulty).ToByteArray();
+            byte[] diffBuff;
+            if(difficulty == 1)
+                 diffBuff = t2.Reverse().ToArray().Skip(1).ToArray();
+            else
+                 diffBuff = t2.Reverse().ToArray();
+            diffBuff.CopyTo(padded, 32 - diffBuff.Length);
+
+            var buff = padded.Take(4);
+
+            return  BitConverter.ToUInt32(buff.Reverse().ToArray(),0);
         }
 
         public static string GetRequestBody(HttpListenerRequest request)
@@ -176,7 +189,7 @@ namespace MoneroPool
         {
             BigInteger diff = new BigInteger(StringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
 
-            List<byte> blockList = blockHash.Reverse().ToList();
+            List<byte> blockList = blockHash.ToList();
             blockList.Add(0x00);
             BigInteger block = new BigInteger(blockList.ToArray());
 
@@ -187,9 +200,9 @@ namespace MoneroPool
                 return ShareProcess.ValidBlock;
 
             }
-            else if (blockDiff <= shareDifficulty)
+            else if (blockDiff < shareDifficulty)
             {
-               Logger.Log(Logger.LogLevel.Error, "Invalid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
+               Logger.Log(Logger.LogLevel.General, "Invalid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
                 return ShareProcess.InvalidShare;
             }
            Logger.Log(Logger.LogLevel.General, "Valid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));

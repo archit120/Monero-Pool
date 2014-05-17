@@ -95,7 +95,7 @@ namespace MoneroPool
 
             while (true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
                 for (int i = 0; i < Statics.BlocksPendingPayment.Count; i++)
                 {
                     string hash = Statics.BlocksPendingPayment[i].BlockHash;

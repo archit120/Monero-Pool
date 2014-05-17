@@ -76,21 +76,7 @@ namespace MoneroPool
                                               hashEntries.First(x => x.Name == property.Name).Value));
                     }
                 } 
-                foreach (var field in t.GetFields())
-                {
-                    if (field.GetType() == typeof(Int32))
-                    {
-                        field.SetValue(tobj,
-                                      (Int32)JsonConvert.DeserializeObject(
-                                           hashEntries.First(x => x.Name == field.Name).Value));
-                    }
-                    else
-                    {
-                        field.SetValue(tobj,
-                                       JsonConvert.DeserializeObject(
-                                           hashEntries.First(x => x.Name == field.Name).Value)); 
-                    }
-                }
+             
                 obj.Add(tobj);
             }
         }
@@ -107,13 +93,7 @@ namespace MoneroPool
                 hashEntries[i] = new HashEntry(property.Name, JsonConvert.SerializeObject(property.GetValue(obj)));
                 i++;
             } 
-            foreach (FieldInfo field in fields)
-            {
-                hashEntries[i] = new HashEntry(field.Name, JsonConvert.SerializeObject(field.GetValue(obj)));
-                i++;
-            }
-
-            string guid = Guid.NewGuid().ToString();
+            string guid = t.GetProperty("Identifier").GetValue(obj).ToString();
             RedisDb.SortedSetAdd(t.GetTypeInfo().Name,guid,RedisDb.SortedSetLength(t.GetTypeInfo().Name));
             RedisDb.HashSet(guid, hashEntries);
         }

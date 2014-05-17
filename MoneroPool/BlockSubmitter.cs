@@ -17,7 +17,7 @@ namespace MoneroPool
             await Task.Yield();
             while (true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
                 for (int i = 0; i < Statics.BlocksPendingSubmition.Count; i++)
                 {
                     PoolBlock block = Statics.BlocksPendingSubmition[i];

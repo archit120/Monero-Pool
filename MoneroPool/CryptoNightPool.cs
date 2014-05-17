@@ -44,7 +44,7 @@ namespace MoneroPool
             }
             else
             {
-                block = Statics.RedisDb.Blocks.First(x => x.BlockHeight == Statics.CurrentBlockHeight);   
+                block = new Block(Statics.CurrentBlockHeight);
             }
             Miner miner;
             if (Statics.RedisDb.Miners.Any(x => x.Address == worker.Address))
@@ -74,10 +74,14 @@ namespace MoneroPool
             Share share = new Share(blockReward.Identifier, shareValue);
             blockReward.Shares.Add(share.Identifier);
 
+            miner.BlockReward.Add(blockReward.Identifier);
+            
+            block.BlockRewards.Add(blockReward.Identifier);
+
             Statics.RedisDb.SaveChanges(blockReward);
             Statics.RedisDb.SaveChanges(share);
             Statics.RedisDb.SaveChanges(miner);
-            Statics.RedisDb.SaveChanges(block);
+            Statics.RedisDb.SaveChanges(block);     
         }
 
         public void GenerateSubmitResponse(ref JObject response, string guid, byte[] nonce, string resultHash)
@@ -124,7 +128,7 @@ namespace MoneroPool
                    result["status"] = "OK";
                }
                else
-                   result["status"] = "NOTOK";
+                   result["status"] = "Share failed valdiation!";
 
            }
            response["result"] = result;
@@ -173,8 +177,7 @@ namespace MoneroPool
             ConnectedWorker worker = new ConnectedWorker();
             worker.Address = address;
             worker.LastSeen = DateTime.Now;
-            worker.CurrentDifficulty =
-                Helpers.GetTargetFromDifficulty(uint.Parse(Statics.Config.IniReadValue("miner-start-difficulty")));
+            worker.CurrentDifficulty =uint.Parse(Statics.Config.IniReadValue("miner-start-difficulty"));
 
 
             Logger.Log(Logger.LogLevel.General, "Adding {0} to connected clients", guid);
@@ -188,6 +191,8 @@ namespace MoneroPool
 
             job["job_id"] = Guid.NewGuid().ToString();
             job["target"] =BitConverter.ToString(BitConverter.GetBytes(Helpers.GetTargetFromDifficulty(worker.CurrentDifficulty))).Replace("-","");
+
+            Logger.Log(Logger.LogLevel.General, "Sending new work with target {0}", (string)job["target"]);
 
             result["job"] = job;
             result["status"] = "OK";

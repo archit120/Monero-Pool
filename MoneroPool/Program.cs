@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,9 +23,20 @@ namespace MoneroPool
 
         private static void Main(string[] args)
         {
+          
+
             ConfigurationOptions configR = new ConfigurationOptions();
             configR.ResolveDns = true;
-            configR.EndPoints.Add(config.IniReadValue("redis-server"));
+
+            string host = config.IniReadValue("redis-server");
+            int port = 6379;
+
+            if (host.Split(':').Length == 2)
+                port = int.Parse(host.Split(':')[1]);
+
+            host = host.Split(':')[0];
+
+            configR.EndPoints.Add(Dns.GetHostAddresses(host)[0], port);
 
             Statics.RedisDb =
                 new RedisPoolDatabase(
@@ -51,7 +63,7 @@ namespace MoneroPool
 
             while (true)
             {
-
+                Thread.Sleep(Timeout.Infinite);
             }
 
         }
