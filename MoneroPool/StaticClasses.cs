@@ -34,8 +34,17 @@ namespace MoneroPool
         InvalidShare
     }
 
+    public enum StaticsLock
+    {
+        LockedByPool = 2,
+        LockedByBackGroundUpdater = 1,
+        NoLock = 0
+    }
+
     public static class Statics
     {
+        public static volatile StaticsLock Lock;
+
         public static volatile JObject CurrentBlockTemplate;
 
         public static volatile int CurrentBlockHeight;

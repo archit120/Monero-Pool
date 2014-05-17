@@ -58,6 +58,7 @@ namespace MoneroPool
                 {
                     if (property.PropertyType == typeof (Int32))
                     {
+
                         property.SetValue(tobj,
                                          JsonConvert.DeserializeObject<Int32>(
                                               hashEntries.First(x => x.Name == property.Name).Value));
