@@ -42,9 +42,42 @@ namespace MoneroPool
             Deserialize(BlockRewards);
             Deserialize(Shares);
             Deserialize(MinerWorkers);
-
+            Deserialize(Information);
         }
 
+        private void Deserialize<T>(T obj)
+        {
+            Type t = typeof(T);
+            HashEntry[] hashEntries = RedisDb.HashGetAll(t.Name);
+            try
+            {
+                foreach (var property in t.GetProperties())
+                {
+                    if (property.PropertyType == typeof (Int32))
+                    {
+
+                        property.SetValue(obj,
+                                          JsonConvert.DeserializeObject<Int32>(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                    else if (property.PropertyType == typeof (List<string>))
+                    {
+                        property.SetValue(obj,
+                                          JsonConvert.DeserializeObject<List<string>>(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                    else
+                    {
+                        property.SetValue(obj,
+                                          JsonConvert.DeserializeObject(
+                                              hashEntries.First(x => x.Name == property.Name).Value));
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
 
         private void Deserialize<T>(List<T> obj)
         {
@@ -81,6 +114,23 @@ namespace MoneroPool
             }
         }
 
+        private void Serialize<T>(T obj)
+        {
+            Type t = typeof(T);
+            PropertyInfo[] properties = t.GetProperties();
+
+            HashEntry[] hashEntries = new HashEntry[properties.Length];
+            int i = 0;
+            foreach (PropertyInfo property in properties)
+            {
+                hashEntries[i] = new HashEntry(property.Name, JsonConvert.SerializeObject(property.GetValue(obj)));
+                i++;
+            }
+
+            RedisDb.HashSet(t.Name, hashEntries);
+
+        }
+
         private void SaveChanges<T>(T obj)
         {
             Type t = typeof (T);
@@ -101,37 +151,88 @@ namespace MoneroPool
         public void SaveChanges(Miner miner)
         {
             SaveChanges<Miner>(miner);
-            Miners.Add(miner);
 
+            for (int i = 0; i < Miners.Count; i++)
+            {
+                if (Miners[i].Identifier == miner.Identifier)
+                {
+                    Miners.RemoveAt(i);
+                    Miners.Insert(i, miner);
+                    return;
+                }
+            }
+            Miners.Add(miner);
         }
 
         public void SaveChanges(MinerWorker minerWorker)
         {
             SaveChanges<MinerWorker>(minerWorker);
-            MinerWorkers.Add(minerWorker);
 
+
+            for (int i = 0; i < MinerWorkers.Count; i++)
+            {
+                if (MinerWorkers[i].Identifier == minerWorker.Identifier)
+                {
+                    MinerWorkers.RemoveAt(i);
+                    MinerWorkers.Insert(i, minerWorker);
+                    return;
+                }
+            }
+            MinerWorkers.Add(minerWorker);
         }
 
         public void SaveChanges(Share share)
         {
             SaveChanges<Share>(share);
-            Shares.Add( share);
-
+            for (int i = 0; i < Shares.Count; i++)
+            {
+                if (Shares[i].Identifier == share.Identifier)
+                {
+                    Shares.RemoveAt(i);
+                    Shares.Insert(i, share);
+                    return;
+                }
+            }
+            Shares.Add(share);
         }
 
         public void SaveChanges(BlockReward blockReward)
         {
             SaveChanges<BlockReward>(blockReward);
-            BlockRewards.Add( blockReward);
 
+            for (int i = 0; i < BlockRewards.Count; i++)
+            {
+                if (BlockRewards[i].Identifier == blockReward.Identifier)
+                {
+                    BlockRewards.RemoveAt(i);
+                    BlockRewards.Insert(i, blockReward);
+                    return;
+                }
+            }
+            BlockRewards.Add(blockReward);
         }
         public void SaveChanges(Block block)
         {
             SaveChanges<Block>(block);
+
+            for (int i = 0; i < Blocks.Count; i++)
+            {
+                if (Blocks[i].Identifier == block.Identifier)
+                {
+                    Blocks.RemoveAt(i);
+                    Blocks.Insert(i, block);
+                    return;
+                }
+            }
             Blocks.Add(block);
 
         }
 
+        public void SaveChanges(PoolInformation poolInformation)
+        {
+            Serialize(poolInformation);
+            Information = poolInformation;
+        }
     }
 
     public class PoolInformation

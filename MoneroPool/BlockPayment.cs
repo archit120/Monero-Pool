@@ -15,7 +15,7 @@ namespace MoneroPool
         }
 
 
-        /* private static async void InitiatePayments()
+         private static async void InitiatePayments(ulong reward, PoolBlock block)
          {
 
              Dictionary<string, double> sharePerAddress = new Dictionary<string, double>();
@@ -25,43 +25,43 @@ namespace MoneroPool
 
              try
              {
-                 lastPaidBlock = int.Parse(redisDb.RedisDb.StringGet("lastpaidblock"));
-                 redisDb.RedisDb.StringSet("lastpaidblock", CurrentBlockHeight);
+                 lastPaidBlock = Statics.RedisDb.Information.LastPaidBlock;
              }
              catch
              {
                  lastPaidBlock = 0;
-                 redisDb.RedisDb.StringSet("lastpaidblock", CurrentBlockHeight);
              }
 
-             redisDb.UpdateLists();
+             
 
-             foreach (var miner in redisDb.Miners)
+             foreach (var miner in Statics.RedisDb.Miners)
              {
                  sharePerAddress.Add(miner.Address, 0);
+                 double shares = 0;
+
+                 Block[] blocks =
+                     Statics.RedisDb.Blocks.Where(
+                         x => x.BlockHeight > lastPaidBlock && x.BlockHeight <= block.BlockHeight).ToArray();
+
                  foreach (
-                     var blockreward in
-                         redisDb.BlockRewards.Where(
+                     var blockReward in
+                         Statics.RedisDb.BlockRewards.Where(
                              x =>
                              x.Miner == miner.Identifier &&
-                             redisDb.Blocks.First(x2 => x2.Identifier == x.Block).BlockHeight > lastPaidBlock))
+                             blocks.Any(x2 => x2.Identifier == x.Block)))
                  {
-                     double shares = 0;
-                     foreach (var share in redisDb.Shares)
+                     foreach (var share in Statics.RedisDb.Shares.Where(x => blockReward.Shares.Contains(x.Identifier)))
                      {
                          shares += share.Value;
                      }
 
-                     sharePerAddress[miner.Address] = shares;
-
                  }
+
+                 sharePerAddress[miner.Address] = shares;
+
              }
 
-             JObject blockHeader = json.InvokeMethod("getblockheaderbyheight", CurrentBlockHeight);
-
-             long reward = (long)blockHeader["result"]["blockheader"]["reward"];
-
-             int fee = 100 + int.Parse(config.IniReadValue("pool-fee"));
+             int fee = 100 + int.Parse(Statics.Config.IniReadValue("pool-fee"));
 
              double rewardPerShare = (double)reward / ((double)(fee * totalShares) / 100);
 
@@ -84,27 +84,35 @@ namespace MoneroPool
              param["mixin"] = 0;
              param["unlock_time"] = 0;
 
-             JObject transfer = Walletjson.InvokeMethod("transfer", param);
+             JObject transfer = Statics.WalletJson.InvokeMethod("transfer", param);
+
+             Statics.RedisDb.Information.LastPaidBlock = block.BlockHeight;
+             Statics.RedisDb.SaveChanges(Statics.RedisDb.Information);
 
              Console.WriteLine(transfer);
-         }   */
+         }
 
         public async void Start()
         {
             await Task.Yield();
+            Logger.Log(Logger.LogLevel.General, "Beginning Block Payment thread!");
 
             while (true)
             {
                 Thread.Sleep(5000);
                 for (int i = 0; i < Statics.BlocksPendingPayment.Count; i++)
                 {
-                    string hash = Statics.BlocksPendingPayment[i].BlockHash;
+                    PoolBlock pBlock = Statics.BlocksPendingPayment[i];
+                    string hash = pBlock.BlockHash;
                     JObject block = (JObject) (await Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyhash"))["result"]["block_header"];
                     int confirms = (int) block["depth"];
                     if (!(bool) block["orphan_status"] &&
                         confirms >= int.Parse(Statics.Config.IniReadValue("block-confirms")))
                     {
                         //Do payments
+                        InitiatePayments((ulong)block["reward"], pBlock);
+                        Statics.BlocksPendingPayment.RemoveAt(i);
+                        i--;
                     }
                     if ((bool) block["orphan_status"])
                     {

@@ -94,12 +94,13 @@ namespace MoneroPool
            JObject result = new JObject();
            byte[] blockHash = Hash.CryptoNight(prevJobBlock);
 
+            Statics.ConnectedClients[guid].LastSeen = DateTime.Now;
 
            if (resultHash.ToUpper() != BitConverter.ToString(blockHash).Replace("-", ""))
            {
-               Console.WriteLine("Hash mismatch from {0}", guid);
+               Logger.Log(Logger.LogLevel.General, "Hash mismatch from {0}", guid);
 
-               result["status"] = "Not ok?";
+               result["status"] = "Hash mismatch ";
                //    throw new Exception();
            }
            else
@@ -112,6 +113,8 @@ namespace MoneroPool
 
                if (shareProcess == ShareProcess.ValidShare || shareProcess == ShareProcess.ValidBlock)
                {
+                   Statics.HashRate.Difficulties.Add(worker.CurrentDifficulty);
+                   Statics.HashRate.Time += (ulong)((DateTime.Now - Statics.HashRate.Begin).TotalSeconds);
                    try
                    {
                        IncreaseShareCount(guid);
@@ -123,7 +126,7 @@ namespace MoneroPool
                    }
                    if (shareProcess == ShareProcess.ValidBlock)
                    {
-                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight, BitConverter.ToString(blockHash)));
+                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight, BitConverter.ToString(blockHash), Statics.ConnectedClients[guid].Address));
                    }
                    result["status"] = "OK";
                }
@@ -135,9 +138,8 @@ namespace MoneroPool
 
        }
 
-       public void GenerateGetWorkResponse(ref JObject response, string guid)
+       public void GenerateGetJobResponse(ref JObject response, string guid)
        {
-           JObject result = new JObject();
            JObject job = new JObject();
 
            ConnectedWorker worker = Statics.ConnectedClients.First(x => x.Key == guid).Value;
@@ -148,7 +150,7 @@ namespace MoneroPool
 
            Logger.Log(Logger.LogLevel.General, "Getwork request from {0}", guid);
 
-           result["id"] = guid;
+           //result["id"] = guid;
 
            int seed = 0;
 
@@ -158,9 +160,8 @@ namespace MoneroPool
            job["job_id"] = Guid.NewGuid().ToString();
            job["target"] = BitConverter.ToString(BitConverter.GetBytes(Helpers.GetTargetFromDifficulty(worker.CurrentDifficulty))).Replace("-", "");
 
-           result["job"] = job;
 
-           response["result"] = result;
+           response["result"] = job;
 
            worker.NewJobRequest();
 
@@ -249,8 +250,8 @@ namespace MoneroPool
                     case "login":
                         GenerateLoginResponse(ref response, guid,(string) request["params"]["login"]);
                         break;
-                    case "getwork":
-                        GenerateGetWorkResponse(ref response, guid);
+                    case "getjob":
+                        GenerateGetJobResponse(ref response, guid);
                         break;
                     case "submit":
                         GenerateSubmitResponse(ref response, guid, Helpers.StringToByteArray((string)request["params"]["nonce"]), (string) request["params"]["result"]);
@@ -264,6 +265,7 @@ namespace MoneroPool
                 client.Response.OutputStream.Write(byteArray, 0, byteArray.Length);
 
                 client.Response.OutputStream.Close();
+                client.Response.Close();
 
             }
             catch (Exception e)

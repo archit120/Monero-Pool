@@ -41,6 +41,17 @@ namespace MoneroPool
         NoLock = 0
     }
 
+    public class PoolHashRateCalculation
+    {
+        public List<uint> Difficulties;
+        public ulong Time;
+        public DateTime Begin;
+
+        public PoolHashRateCalculation()
+        {
+        }
+    }
+
     public static class Statics
     {
         public static volatile StaticsLock Lock;
@@ -64,11 +75,13 @@ namespace MoneroPool
         public static volatile Dictionary<string, ConnectedWorker> ConnectedClients = new Dictionary<string, ConnectedWorker>();
 
         public static volatile RedisPoolDatabase RedisDb;
+
+        public static volatile PoolHashRateCalculation HashRate;
     }
 
     public static class Helpers
     {
-        public static double GetHashRate(List<ulong> difficulty, ulong time)
+        public static double GetHashRate(List<uint> difficulty, ulong time)
         {
             //Thanks surfer43
             double difficultySum = difficulty.Sum(x=>(double)x);
@@ -84,7 +97,7 @@ namespace MoneroPool
                  worker.ShareDifficulty.Last().Key).Seconds;
             return GetHashRate(
                 worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count - 4)
-                      .ToDictionary(x => x.Key, x => x.Value)
+                      .ToDictionary(x =>x.Key, x => (uint)x.Value)
                       .Values.ToList(), time);
 
         }
@@ -147,21 +160,7 @@ namespace MoneroPool
 
         public static uint GetTargetFromDifficulty(uint difficulty)
         {
-            BigInteger diff = new BigInteger(StringToByteArray("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00"));
-
-            var padded = new byte[32];
-
-            var t2 = (diff/difficulty).ToByteArray();
-            byte[] diffBuff;
-            if(difficulty == 1)
-                 diffBuff = t2.Reverse().ToArray().Skip(1).ToArray();
-            else
-                 diffBuff = t2.Reverse().ToArray();
-            diffBuff.CopyTo(padded, 32 - diffBuff.Length);
-
-            var buff = padded.Take(4);
-
-            return  BitConverter.ToUInt32(buff.Reverse().ToArray(),0);
+            return uint.MaxValue/difficulty;
         }
 
         public static string GetRequestBody(HttpListenerRequest request)

@@ -14,6 +14,8 @@ namespace MoneroPool
 
         public async void Start()
         {
+            Logger.Log(Logger.LogLevel.General, "Beginning Block Submittion thread!");
+
             await Task.Yield();
             while (true)
             {
@@ -21,8 +23,15 @@ namespace MoneroPool
                 for (int i = 0; i < Statics.BlocksPendingSubmition.Count; i++)
                 {
                     PoolBlock block = Statics.BlocksPendingSubmition[i];
+
                     if ((string) (await Statics.DaemonJson.InvokeMethodAsync("submitblock", block.BlockData))["result"]["status"] == "OK")
                     {
+                        Block rBlock = Statics.RedisDb.Blocks.First(x => x.Found);//
+                        rBlock.Found = true;
+                        rBlock.Founder= block.Founder;
+
+                        Statics.RedisDb.SaveChanges(rBlock);
+
                         Statics.BlocksPendingPayment.Add(block);
                     }
                     else

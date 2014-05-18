@@ -23,7 +23,6 @@ namespace MoneroPool
 
         private static void Main(string[] args)
         {
-          
 
             ConfigurationOptions configR = new ConfigurationOptions();
             configR.ResolveDns = true;
@@ -38,6 +37,12 @@ namespace MoneroPool
 
             configR.EndPoints.Add(Dns.GetHostAddresses(host)[0], port);
 
+            Logger.Log(Logger.LogLevel.General, "Starting up!");
+
+            PoolHashRateCalculation hashRate = new PoolHashRateCalculation();
+            hashRate.Difficulties = new List<uint>();
+
+            Statics.HashRate = hashRate;
             Statics.RedisDb =
                 new RedisPoolDatabase(
                     ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
