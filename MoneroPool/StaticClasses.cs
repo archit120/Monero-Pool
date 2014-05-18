@@ -43,7 +43,7 @@ namespace MoneroPool
 
     public class PoolHashRateCalculation
     {
-        public List<uint> Difficulties;
+        public uint Difficulty;
         public ulong Time;
         public DateTime Begin;
 
@@ -86,7 +86,13 @@ namespace MoneroPool
             //Thanks surfer43
             double difficultySum = difficulty.Sum(x=>(double)x);
 
-            return difficultySum / time;
+            return GetHashRate(difficultySum, time);
+        }
+        public static double GetHashRate(double difficulty, ulong time)
+        {
+            //Thanks surfer43
+
+            return difficulty / time;
         }
 
         public static double GetWorkerHashRate(ConnectedWorker worker)
@@ -163,16 +169,15 @@ namespace MoneroPool
             return uint.MaxValue/difficulty;
         }
 
-        public static string GetRequestBody(HttpListenerRequest request)
+        public static string GetRequestBody(Mono.Net.HttpListenerRequest request)
         {
             string documentContents;
-            using (Stream receiveStream = request.InputStream)
-            {
-                using (StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8))
-                {
-                    documentContents = readStream.ReadToEnd();
-                }
-            }
+            StreamReader readStream = new StreamReader(request.InputStream, Encoding.UTF8);
+
+            documentContents = readStream.ReadToEnd();
+
+            //readStream.Dispose();
+
             return documentContents;
         }
 

@@ -35,7 +35,7 @@ namespace MoneroPool
             {
                 int newBlockHeight =
                     (int) (await Statics.DaemonJson.InvokeMethodAsync("getblockcount"))["result"]["count"];
-                Logger.Log(Logger.LogLevel.General, "Current pool hashrate : {0} Hashes/Second", Helpers.GetHashRate(Statics.HashRate.Difficulties, Statics.HashRate.Time));
+                Logger.Log(Logger.LogLevel.General, "Current pool hashrate : {0} Hashes/Second", Helpers.GetHashRate(Statics.HashRate.Difficulty, Statics.HashRate.Time));
 
                 if (newBlockHeight != Statics.CurrentBlockHeight)
                 {
@@ -53,7 +53,7 @@ namespace MoneroPool
                                                        ["result"];
 
                     Logger.Log(Logger.LogLevel.General, "New block with height {0}",newBlockHeight);
-                    Statics.HashRate.Difficulties = new List<uint>();
+                    Statics.HashRate.Difficulty = 0;
                     Statics.HashRate.Time = 0;
                     Statics.HashRate.Begin = DateTime.Now;
                     Statics.CurrentBlockHeight = newBlockHeight;

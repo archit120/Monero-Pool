@@ -21,12 +21,12 @@ namespace MoneroPool
        {
            Logger.Log(Logger.LogLevel.General, "Beginning Listen!");
 
-           HttpListener listener = new HttpListener();
+           Mono.Net.HttpListener listener = new Mono.Net.HttpListener();
            listener.Prefixes.Add(Statics.Config.IniReadValue("http-server"));
            listener.Start();
            while (true)
            {
-               HttpListenerContext client = await listener.GetContextAsync();
+               Mono.Net.HttpListenerContext client = await listener.GetContextAsync();
                AcceptClient(client);
            }   
        }
@@ -113,8 +113,8 @@ namespace MoneroPool
 
                if (shareProcess == ShareProcess.ValidShare || shareProcess == ShareProcess.ValidBlock)
                {
-                   Statics.HashRate.Difficulties.Add(worker.CurrentDifficulty);
-                   Statics.HashRate.Time += (ulong)((DateTime.Now - Statics.HashRate.Begin).TotalSeconds);
+                   Statics.HashRate.Difficulty=worker.CurrentDifficulty;
+                   Statics.HashRate.Time = (ulong) ((DateTime.Now - Statics.HashRate.Begin).TotalSeconds);
                    try
                    {
                        IncreaseShareCount(guid);
@@ -220,12 +220,12 @@ namespace MoneroPool
 
         }
 
-       public async void AcceptClient(HttpListenerContext client)
+       public async void AcceptClient(Mono.Net.HttpListenerContext client)
         {
             try
             {
                 string sRequest = Helpers.GetRequestBody(client.Request);
-
+                //sRequest = Helpers.GetRequestBody(client.Request);
                 if (sRequest == "")
                     return;
 
@@ -264,8 +264,13 @@ namespace MoneroPool
                 client.Response.ContentLength64 = byteArray.Length;
                 client.Response.OutputStream.Write(byteArray, 0, byteArray.Length);
 
+               /* foreach (var b in client.connections)
+                {
+                    
+                } */  
+                //client.
                 client.Response.OutputStream.Close();
-                client.Response.Close();
+                //client.Response.Close();
 
             }
             catch (Exception e)

@@ -39,10 +39,7 @@ namespace MoneroPool
 
             Logger.Log(Logger.LogLevel.General, "Starting up!");
 
-            PoolHashRateCalculation hashRate = new PoolHashRateCalculation();
-            hashRate.Difficulties = new List<uint>();
-
-            Statics.HashRate = hashRate;
+            Statics.HashRate = new PoolHashRateCalculation();
             Statics.RedisDb =
                 new RedisPoolDatabase(
                     ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
