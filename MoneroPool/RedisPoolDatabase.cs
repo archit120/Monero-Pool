@@ -53,25 +53,30 @@ namespace MoneroPool
             {
                 foreach (var property in t.GetProperties())
                 {
-                    if (property.PropertyType == typeof (Int32))
+                    try
                     {
+                        if (property.PropertyType == typeof (Int32))
+                        {
 
-                        property.SetValue(obj,
-                                          JsonConvert.DeserializeObject<Int32>(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
+                            property.SetValue(obj,
+                                              JsonConvert.DeserializeObject<Int32>(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
+                        else if (property.PropertyType == typeof (List<string>))
+                        {
+                            property.SetValue(obj,
+                                              JsonConvert.DeserializeObject<List<string>>(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
+                        else
+                        {
+                            property.SetValue(obj,
+                                              JsonConvert.DeserializeObject(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
                     }
-                    else if (property.PropertyType == typeof (List<string>))
-                    {
-                        property.SetValue(obj,
-                                          JsonConvert.DeserializeObject<List<string>>(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
-                    }
-                    else
-                    {
-                        property.SetValue(obj,
-                                          JsonConvert.DeserializeObject(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
-                    }
+                    catch   
+                    {}
                 }
             }
             catch
@@ -88,28 +93,33 @@ namespace MoneroPool
                 T tobj = (T) Activator.CreateInstance(t);
                 HashEntry[] hashEntries = RedisDb.HashGetAll(redisValue);
                 foreach (var property in t.GetProperties())
-                {
-                    if (property.PropertyType == typeof (Int32))
-                    {
 
-                        property.SetValue(tobj,
-                                         JsonConvert.DeserializeObject<Int32>(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
-                    }
-                    else if(property.PropertyType==typeof(List<string>))
+                    try
                     {
-                        property.SetValue(tobj,
-                                        JsonConvert.DeserializeObject <List<string>>(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
+                        if (property.PropertyType == typeof (Int32))
+                        {
+
+                            property.SetValue(tobj,
+                                              JsonConvert.DeserializeObject<Int32>(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
+                        else if (property.PropertyType == typeof (List<string>))
+                        {
+                            property.SetValue(tobj,
+                                              JsonConvert.DeserializeObject<List<string>>(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
+                        else
+                        {
+                            property.SetValue(tobj,
+                                              JsonConvert.DeserializeObject(
+                                                  hashEntries.First(x => x.Name == property.Name).Value));
+                        }
                     }
-                    else
+                    catch
                     {
-                        property.SetValue(tobj,
-                                        JsonConvert.DeserializeObject(
-                                              hashEntries.First(x => x.Name == property.Name).Value));
                     }
-                } 
-             
+
                 obj.Add(tobj);
             }
         }

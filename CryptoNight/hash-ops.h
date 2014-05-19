@@ -5,7 +5,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <stdlib.h>
 union hash_state {
   uint8_t b[200];
   uint64_t w[25];

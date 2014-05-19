@@ -23,6 +23,7 @@ namespace MoneroPool
 
         private static void Main(string[] args)
         {
+            Console.WriteLine(BitConverter.ToString(Hash.CryptoNight(Helpers.StringToByteArray("AA00AA"))));
 
             ConfigurationOptions configR = new ConfigurationOptions();
             configR.ResolveDns = true;

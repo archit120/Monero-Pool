@@ -7,6 +7,21 @@
 
 
 
+
+#ifndef __WIN32
+
+template<class T> 
+inline  T rotr(T x, uint8_t r) {
+      asm("rorl %1,%0" : "+r" (x) : "c" (r));
+      return x;
+    }
+
+template<class T> 
+inline  T rotl(T x, uint8_t r) {
+      asm("roll %1,%0" : "+r" (x) : "c" (r));
+      return x;
+    }
+#else
 static __inline uint32_t rol32(uint32_t x, int r) {
   static_assert(sizeof(uint32_t) == sizeof(unsigned int), "this code assumes 32-bit integers");
   return _rotl(x, r);
@@ -15,6 +30,7 @@ static __inline uint32_t rol32(uint32_t x, int r) {
 static __inline uint64_t rol64(uint64_t x, int r) {
   return _rotl64(x, r);
 }
+#endif
 
 
 static __inline uint64_t hi_dword(uint64_t val) {

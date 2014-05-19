@@ -24,7 +24,8 @@ namespace MoneroPool
                 {
                     PoolBlock block = Statics.BlocksPendingSubmition[i];
 
-                    if ((string) (await Statics.DaemonJson.InvokeMethodAsync("submitblock", block.BlockData))["result"]["status"] == "OK")
+                    JObject submitblock = (await Statics.DaemonJson.InvokeMethodAsync("submitblock", block.BlockData));
+                    if ((string) submitblock["result"]["status"] == "OK")
                     {
                         Block rBlock = Statics.RedisDb.Blocks.First(x => x.Found);//
                         rBlock.Found = true;
@@ -36,7 +37,7 @@ namespace MoneroPool
                     }
                     else
                     {
-                        Console.WriteLine("Block submittance failed!");
+                        Logger.Log(Logger.LogLevel.Error, "Block submittance failed with height {0} and error {1}!", block.BlockHeight, submitblock["result"]["status"]);
                     }
                     Statics.BlocksPendingSubmition.RemoveAt(i);
                     i--;

@@ -57,8 +57,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="StackExchange.Redis, Version=1.0.289.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="StackExchange.Redis">
       <HintPath>..\packages\StackExchange.Redis.dll</HintPath>
     </Reference>
     <Reference Include="System" />
