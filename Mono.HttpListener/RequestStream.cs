@@ -115,13 +115,13 @@ namespace Mono.Net
             if (this.length == 0)
                 return 0;
 
-            int size = Math.Min(this.length, count);
+            int size = System.Math.Min(this.length, count);
             if (this.remaining_body > 0)
-                size = (int)Math.Min(size, this.remaining_body);
+				size = (int)System.Math.Min(size, this.remaining_body);
 
             if (this.offset > this.buffer.Length - size)
             {
-                size = Math.Min(size, this.buffer.Length - this.offset);
+				size = System.Math.Min(size, this.buffer.Length - this.offset);
             }
             if (size == 0)
                 return 0;
@@ -171,7 +171,7 @@ namespace Mono.Net
                 ares.Count = count;
                 ares.Callback = cback;
                 ares.State = state;
-                ares.SynchRead = Math.Max(0, nread);
+				ares.SynchRead = System.Math.Max(0, nread);
                 ares.Complete();
                 return ares;
             }
@@ -179,7 +179,7 @@ namespace Mono.Net
             // Avoid reading past the end of the request to allow
             // for HTTP pipelining
             if (remaining_body >= 0 && count > remaining_body)
-                count = (int)Math.Min(Int32.MaxValue, remaining_body);
+				count = (int)System.Math.Min(Int32.MaxValue, remaining_body);
             return stream.BeginRead(buffer, offset, count, cback, state);
         }
 

@@ -299,7 +299,7 @@ namespace Mono.Net {
 
 			int length = 2048;
 			if (content_length > 0)
-				length = (int) Math.Min (content_length, (long) length);
+				length = (int) System.Math.Min (content_length, (long) length);
 
 			byte [] bytes = new byte [length];
 			while (true) {

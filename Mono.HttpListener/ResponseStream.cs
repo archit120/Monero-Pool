@@ -148,7 +148,7 @@ namespace Mono.Net {
 					ms.Write (bytes, 0, bytes.Length);
 				}
 
-				int new_count = Math.Min (count, 16384 - (int) ms.Position + (int) start);
+				int new_count = System.Math.Min (count, 16384 - (int) ms.Position + (int) start);
 				ms.Write (buffer, offset, new_count);
 				count -= new_count;
 				offset += new_count;

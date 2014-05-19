@@ -138,7 +138,8 @@ namespace Mono.Net {
 					return;
 				}
 				ares.Offset = 0;
-				ares.Count = Math.Min (8192, decoder.ChunkLeft + 6);
+
+				ares.Count = System.Math.Min (8192, decoder.ChunkLeft + 6);
 				base.BeginRead (ares.Buffer, ares.Offset, ares.Count, OnRead, rb);
 			} catch (Exception e) {
 				context.Connection.SendError (e.Message, 400);

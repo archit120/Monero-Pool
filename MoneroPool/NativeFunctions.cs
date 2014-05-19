@@ -15,11 +15,18 @@ namespace MoneroPool
         [DllImport("CryptoNight.dll", EntryPoint = "cn_slow_hash")]
         public static extern void cn_slow_hash_win_32(byte[] data, uint length, byte[] hash);
 
+        [DllImport("CryptoNight", EntryPoint = "cn_slow_hash")]
+        public static extern void cn_slow_hash_unix_64(byte[] data, ulong length, byte[] hash);
+
+        [DllImport("CryptoNight", EntryPoint = "cn_slow_hash")]
+        public static extern void cn_slow_hash_unix_32(byte[] data, uint length, byte[] hash);
+
+
         public static bool IsLinux
         {
             get
             {
-                int p = (int) Environment.OSVersion.Platform;
+                int p = (int)Environment.OSVersion.Platform;
                 return (p == 4) || (p == 6) || (p == 128);
             }
         }
@@ -31,16 +38,24 @@ namespace MoneroPool
                 switch (Environment.Is64BitOperatingSystem)
                 {
                     case true:
-                        cn_slow_hash_win_64(data, (uint)length, hash);
+                        cn_slow_hash_win_64(data, (ulong)length, hash);
                         break;
                     case false:
-                        cn_slow_hash_win_32(data,(uint)length, hash);
+                        cn_slow_hash_win_32(data, (uint)length, hash);
                         break;
                 }
             }
             else
             {
-                throw new Exception("Sorry no linux ATM");
+                switch (Environment.Is64BitOperatingSystem)
+                {
+                    case true:
+                        cn_slow_hash_unix_64(data, (ulong)length, hash);
+                        break;
+                    case false:
+                        cn_slow_hash_unix_32(data, (uint)length, hash);
+                        break;
+                }
             }
         }
     }

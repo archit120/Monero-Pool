@@ -88,7 +88,7 @@ namespace Mono.Net {
 				addr = IPAddress.Any;
 			else if (IPAddress.TryParse(host, out addr) == false){
 				try {
-					IPHostEntry iphost = Dns.GetHostByName(host);
+					IPHostEntry iphost = System.Net.Dns.GetHostByName(host);
 					if (iphost != null)
 						addr = iphost.AddressList[0];
 					else
