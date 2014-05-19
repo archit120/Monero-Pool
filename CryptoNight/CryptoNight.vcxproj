@@ -109,7 +109,7 @@
     <ClCompile Include="keccak.cpp" />
     <ClCompile Include="oaes_lib.c" />
     <ClCompile Include="skein.cpp" />
-    <ClCompile Include="slow-hash.cpp" />
+    <ClCompile Include="cn-hash.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blake256.h" />
@@ -121,10 +121,9 @@
     <ClInclude Include="keccak.h" />
     <ClInclude Include="oaes_config.h" />
     <ClInclude Include="oaes_lib.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="skein.h" />
     <ClInclude Include="skein_port.h" />
-    <ClInclude Include="slow-hash.h" />
+    <ClInclude Include="hash.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

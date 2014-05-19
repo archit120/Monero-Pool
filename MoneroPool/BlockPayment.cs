@@ -104,7 +104,9 @@ namespace MoneroPool
                 {
                     PoolBlock pBlock = Statics.BlocksPendingPayment[i];
                     string hash = pBlock.BlockHash;
-                    JObject block = (JObject) (await Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyhash"))["result"]["block_header"];
+                    JObject param = new JObject();
+                    param["hash"] = hash;
+                    JObject block = (JObject) (await Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyhash", new JObject()))["result"]["block_header"];
                     int confirms = (int) block["depth"];
                     if (!(bool) block["orphan_status"] &&
                         confirms >= int.Parse(Statics.Config.IniReadValue("block-confirms")))

@@ -22,25 +22,38 @@ namespace MoneroPool
                 Thread.Sleep(5000);
                 for (int i = 0; i < Statics.BlocksPendingSubmition.Count; i++)
                 {
-                    PoolBlock block = Statics.BlocksPendingSubmition[i];
-
-                    JObject submitblock = (await Statics.DaemonJson.InvokeMethodAsync("submitblock", block.BlockData));
-                    if ((string) submitblock["result"]["status"] == "OK")
+                    try
                     {
-                        Block rBlock = Statics.RedisDb.Blocks.First(x => x.Found);//
-                        rBlock.Found = true;
-                        rBlock.Founder= block.Founder;
+                        PoolBlock block = Statics.BlocksPendingSubmition[i];
 
-                        Statics.RedisDb.SaveChanges(rBlock);
+                        JObject submitblock =
+                            (await
+                             Statics.DaemonJson.InvokeMethodAsync("submitblock",
+                                                                  new JArray(
+                                                                      BitConverter.ToString(block.BlockData)
+                                                                                  .Replace("-", ""))));
+                        if ((string) submitblock["result"]["status"] == "OK")
+                        {
+                            Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == block.BlockHeight); //
+                            rBlock.Found = true;
+                            rBlock.Founder = block.Founder;
 
-                        Statics.BlocksPendingPayment.Add(block);
+                            Statics.RedisDb.SaveChanges(rBlock);
+
+                            Statics.BlocksPendingPayment.Add(block);
+                        }
+                        else
+                        {
+                            Logger.Log(Logger.LogLevel.Error, "Block submittance failed with height {0} and error {1}!",
+                                       block.BlockHeight, submitblock["result"]["status"]);
+                        }
+                        Statics.BlocksPendingSubmition.RemoveAt(i);
+                        i--;
                     }
-                    else
+                    catch (Exception e)
                     {
-                        Logger.Log(Logger.LogLevel.Error, "Block submittance failed with height {0} and error {1}!", block.BlockHeight, submitblock["result"]["status"]);
+                        Logger.Log(Logger.LogLevel.Error,e.ToString());
                     }
-                    Statics.BlocksPendingSubmition.RemoveAt(i);
-                    i--;
                 }
             }
         }

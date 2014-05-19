@@ -17,6 +17,7 @@ namespace MoneroPool
         public async void Start()
         {
             await Task.Yield();
+            Statics.CurrentBlockHeight =                     (int) (await Statics.DaemonJson.InvokeMethodAsync("getblockcount"))["result"]["count"];
             Statics.CurrentBlockTemplate = (JObject)
                                            (await
                                             Statics.DaemonJson.InvokeMethodAsync("getblocktemplate",
@@ -30,12 +31,19 @@ namespace MoneroPool
                                                                                                     "wallet-address")))))
                                                ["result"];
             Statics.HashRate.Begin = DateTime.Now;
-           Logger.Log(Logger.LogLevel.General, "Acquired block template!");
+           Logger.Log(Logger.LogLevel.General, "Acquired block template and height, miners can connet now!");
             while (true)
             {
                 int newBlockHeight =
                     (int) (await Statics.DaemonJson.InvokeMethodAsync("getblockcount"))["result"]["count"];
                 Logger.Log(Logger.LogLevel.General, "Current pool hashrate : {0} Hashes/Second", Helpers.GetHashRate(Statics.HashRate.Difficulty, Statics.HashRate.Time));
+
+                Statics.RedisDb.Information.CurrentBlock = newBlockHeight;
+                Statics.RedisDb.Information.NewtworkHashRate = (double)((int) Statics.CurrentBlockTemplate["difficulty"])/60;
+                Statics.RedisDb.Information.PoolHashRate = Helpers.GetHashRate(Statics.HashRate.Difficulty,
+                                                                               Statics.HashRate.Time);
+
+                Statics.RedisDb.SaveChanges(Statics.RedisDb.Information);
 
                 if (newBlockHeight != Statics.CurrentBlockHeight)
                 {

@@ -126,7 +126,7 @@ namespace MoneroPool
                    }
                    if (shareProcess == ShareProcess.ValidBlock)
                    {
-                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight, BitConverter.ToString(blockHash), Statics.ConnectedClients[guid].Address));
+                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight, BitConverter.ToString(Hash.CryptoNightFastHash(prevJobBlock)).Replace("-",""), Statics.ConnectedClients[guid].Address));
                    }
                    result["status"] = "OK";
                }

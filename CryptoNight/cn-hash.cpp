@@ -6,7 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include "slow-hash.h"
+#include "hash.h"
+#include "keccak.h"
 #include "int-util.h"
 #include "hash-ops.h"
 #include "oaes_lib.h"
@@ -79,7 +80,11 @@ union cn_slow_hash_state {
 };
 #pragma pack(pop)
 
-void cn_slow_hash(char *data, size_t length, char *hash) {
+void cn_fast_hash(char *data, uint32_t length, char *hash) {
+	keccak1600((const uint8_t*)data, length,(uint8_t*) hash);
+}
+
+void cn_slow_hash(char *data, uint32_t length, char *hash) {
   uint8_t long_state[MEMORY];
   union cn_slow_hash_state state;
   uint8_t text[INIT_SIZE_BYTE];

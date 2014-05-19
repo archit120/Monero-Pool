@@ -19,7 +19,18 @@ namespace MoneroPool
             byte[] crytoNightHash = new byte[32];
             //Dirty hack for increased stack size
             Thread t = new Thread(
-                () => NativeFunctions.cn_slow_hash(data, (ulong)data.Length, crytoNightHash), 1024 * 1024 * 8);
+                () => NativeFunctions.cn_slow_hash(data, (uint)data.Length, crytoNightHash), 1024 * 1024 * 8);
+            t.Start();
+            t.Join();
+
+            return crytoNightHash;
+        }
+        public static byte[] CryptoNightFastHash(byte[] data)
+        {
+            byte[] crytoNightHash = new byte[32];
+            //Dirty hack for increased stack size
+            Thread t = new Thread(
+                () => NativeFunctions.cn_fast_hash(data, (uint)data.Length, crytoNightHash), 1024 * 1024 * 8);
             t.Start();
             t.Join();
 

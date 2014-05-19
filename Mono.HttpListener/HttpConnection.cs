@@ -216,7 +216,6 @@ namespace Mono.Net {
 			try {
 				nread = stream.EndRead (ares);
 				ms.Write (buffer, 0, nread);
-                Console.WriteLine(ASCIIEncoding.ASCII.GetString(buffer.Take(nread).ToArray()).Trim());
 				if (ms.Length > 32768) {
 					SendError ("Bad request", 400);
 					Close (true);

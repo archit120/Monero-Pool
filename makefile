@@ -1,7 +1,7 @@
 all:
 	mkdir build
 	cd CryptoNight; \
-	g++ -shared blake256.cpp groestl.cpp hash.cpp hash-extra-blake.cpp hash-extra-groestl.cpp hash-extra-jh.cpp hash-extra-skein.cpp jh.cpp keccak.cpp oaes_lib.c skein.cpp slow-hash.cpp -o ../build/libCryptoNight.so -fPIC
+	g++ -shared blake256.cpp groestl.cpp hash.cpp hash-extra-blake.cpp hash-extra-groestl.cpp hash-extra-jh.cpp hash-extra-skein.cpp jh.cpp keccak.cpp oaes_lib.c skein.cpp cn-hash.cpp -o ../build/libCryptoNight.so -fPIC
 
 	xbuild MoneroPool.mono.sln
 	

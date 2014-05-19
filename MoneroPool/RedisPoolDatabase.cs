@@ -249,8 +249,8 @@ namespace MoneroPool
     {
         public int LastPaidBlock;
         public int CurrentBlock;
-        public int NewtworkHashRate { get; set; }
-        public int PoolHashRate { get; set; }
+        public double NewtworkHashRate { get; set; }
+        public double PoolHashRate { get; set; }
 
         public PoolInformation()
         {

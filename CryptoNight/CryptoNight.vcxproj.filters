@@ -48,7 +48,7 @@
     <ClCompile Include="skein.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="slow-hash.cpp">
+    <ClCompile Include="cn-hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,16 +80,13 @@
     <ClInclude Include="oaes_lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="skein.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="skein_port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="slow-hash.h">
+    <ClInclude Include="hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
