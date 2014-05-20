@@ -14,6 +14,23 @@ namespace MoneroPool
             
         }
 
+        public static void ForceUpdate()
+        {
+            Logger.Log(Logger.LogLevel.General, "Background updater forced!");
+            Statics.CurrentBlockHeight = (int) (Statics.DaemonJson.InvokeMethod("getblockcount"))["result"]["count"];
+            Statics.CurrentBlockTemplate = (JObject)
+                                           (Statics.DaemonJson.InvokeMethod("getblocktemplate",
+                                                                            new JObject(
+                                                                                new JProperty(
+                                                                                    "reserve_size", 4),
+                                                                                new JProperty(
+                                                                                    "wallet_address",
+                                                                                    Statics.Config
+                                                                                           .IniReadValue(
+                                                                                               "wallet-address")))))
+                                               ["result"];
+        }
+
         public async void Start()
         {
             await Task.Yield();

@@ -126,7 +126,7 @@ namespace MoneroPool
                    }
                    if (shareProcess == ShareProcess.ValidBlock)
                    {
-                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight, BitConverter.ToString(Hash.CryptoNightFastHash(prevJobBlock)).Replace("-",""), Statics.ConnectedClients[guid].Address));
+                       Statics.BlocksPendingSubmition.Add(new PoolBlock(prevJobBlock, Statics.CurrentBlockHeight,"", Statics.ConnectedClients[guid].Address));
                    }
                    result["status"] = "OK";
                }
@@ -144,8 +144,7 @@ namespace MoneroPool
 
            ConnectedWorker worker = Statics.ConnectedClients.First(x => x.Key == guid).Value;
            worker.LastSeen = DateTime.Now;
-           worker.CurrentDifficulty =
-               Helpers.GetTargetFromDifficulty(uint.Parse(Statics.Config.IniReadValue("miner-start-difficulty")));
+           worker.CurrentDifficulty =uint.Parse(Statics.Config.IniReadValue("miner-start-difficulty"));
 
 
            Logger.Log(Logger.LogLevel.General, "Getwork request from {0}", guid);

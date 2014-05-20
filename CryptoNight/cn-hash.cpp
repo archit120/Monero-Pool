@@ -85,7 +85,7 @@ void cn_fast_hash(char *data, uint32_t length, char *hash) {
 }
 
 void cn_slow_hash(char *data, uint32_t length, char *hash) {
-  uint8_t long_state[MEMORY];
+  uint8_t* long_state = new uint8_t[MEMORY];
   union cn_slow_hash_state state;
   uint8_t text[INIT_SIZE_BYTE];
   uint8_t a[AES_BLOCK_SIZE];
@@ -153,4 +153,6 @@ void cn_slow_hash(char *data, uint32_t length, char *hash) {
   /*memcpy(hash, &state, 32);*/
   extra_hashes[state.hs.b[0] & 3](&state, 200, hash);
   oaes_free(&aes_ctx);
+
+  delete[] long_state;
 }
