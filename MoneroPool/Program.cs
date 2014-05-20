@@ -21,8 +21,11 @@ namespace MoneroPool
     {
         private static IniFile config = new IniFile("config.txt");
 
+ 
+
         private static void Main(string[] args)
         {
+
             ConfigurationOptions configR = new ConfigurationOptions();
             configR.ResolveDns = true;
 
@@ -39,9 +42,41 @@ namespace MoneroPool
             Logger.Log(Logger.LogLevel.General, "Starting up!");
 
             Statics.HashRate = new PoolHashRateCalculation();
-            Statics.RedisDb =
-                new RedisPoolDatabase(
-                    ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
+            try
+            {
+
+                Statics.RedisDb =
+                    new RedisPoolDatabase(
+                        ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
+            }
+            catch (StackExchange.Redis.RedisConnectionException e)
+            {
+                if (NativeFunctions.IsLinux)
+                {
+                    Logger.Log(Logger.LogLevel.Error, "Redis connection failed.Retrying after 3 seconds");
+                    Thread.Sleep(3 * 1000);
+                    while (true)
+                    {
+                        try
+                        {
+                            Statics.RedisDb =
+                     new RedisPoolDatabase(
+                         ConnectionMultiplexer.Connect(configR).GetDatabase(int.Parse(config.IniReadValue("redis-database"))));
+                            break;
+                        }
+                        catch 
+                        {
+                        }
+                        Logger.Log(Logger.LogLevel.Error, "Redis connection failed.Retrying after 3 seconds");
+                        Thread.Sleep(3 * 1000);
+                    }
+                }
+                else
+                {
+                    Logger.Log(Logger.LogLevel.Error, "Redis connection failed. Shutting down");
+                    System.Diagnostics.Process.GetCurrentProcess().Close();
+                }
+            }
             Statics.BlocksPendingPayment = new List<PoolBlock>();
             Statics.BlocksPendingSubmition = new List<PoolBlock>();
             Statics.Config = new IniFile("config.txt");

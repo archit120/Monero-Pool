@@ -35,6 +35,7 @@ namespace MoneroPool
             BlockRewards = new List<BlockReward>();
             Shares = new List<Share>();
             MinerWorkers = new List<MinerWorker>();
+            Information = new PoolInformation();
 
             //Start with blocks
             Deserialize(Blocks);

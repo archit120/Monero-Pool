@@ -19,7 +19,7 @@ namespace MoneroPool
         {
             if (logLevel<=AppLogLevel)
             {
-                Console.WriteLine("[{0}] [Thread Id : {1}]" + string.Format(format, args), DateTime.Now, System.Threading.Thread.CurrentThread.ManagedThreadId);     
+                Console.WriteLine("[{0}] [Thread Count : {1}]" + string.Format(format, args), DateTime.Now, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);     
             }
         }
     }

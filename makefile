@@ -8,6 +8,7 @@ all:
 	cp MoneroPool/bin/Debug/MoneroPool.exe build/MoneroPool.exe		
 	cp MoneroPool/bin/Debug/Newtonsoft.Json.dll build/Newtonsoft.Json.dll
 	cp MoneroPool/bin/Debug/StackExchange.Redis.md.dll build/StackExchange.Redis.md.dll	
+	cp MoneroPool/bin/Debug/Mono.HttpListener.dll build/Mono.HttpListener.dll
 
 
 

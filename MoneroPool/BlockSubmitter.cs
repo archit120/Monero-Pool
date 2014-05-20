@@ -37,35 +37,43 @@ namespace MoneroPool
                                                                           BitConverter.ToString(block.BlockData)
                                                                                       .Replace("-", ""))));
 
-                            if ((string) submitblock["result"]["status"] == "OK")
+                            try
                             {
-                                Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == block.BlockHeight); //
-                                rBlock.Found = true;
-                                rBlock.Founder = block.Founder;
+                                if ((string) submitblock["result"]["status"] == "OK")
+                                {
+                                    Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == block.BlockHeight);
+                                    //
+                                    rBlock.Found = true;
+                                    rBlock.Founder = block.Founder;
 
-                                Statics.RedisDb.SaveChanges(rBlock);
+                                    Statics.RedisDb.SaveChanges(rBlock);
 
-                                JObject param = new JObject();
-                                param["height"] = block.BlockHeight;
-                                block.BlockHash =
-                                    (string)
-                                    (await
-                                     Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyheight", new JObject(param)))
-                                        [
-                                            "result"]["block_header"]["hash"];
+                                    JObject param = new JObject();
+                                    param["height"] = block.BlockHeight;
+                                    block.BlockHash =
+                                        (string)
+                                        (await
+                                         Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyheight",
+                                                                              param))
+                                            [
+                                                "result"]["block_header"]["hash"];
 
-                                Statics.BlocksPendingPayment.Add(block);
+                                    Statics.BlocksPendingPayment.Add(block);
 
-                                BackgroundSaticUpdater.ForceUpdate();
-                                //Force statics update to prevent creating orhpans ourselves, you don't want that now do you?
+                                    BackgroundSaticUpdater.ForceUpdate();
+                                    //Force statics update to prevent creating orhpans ourselves, you don't want that now do you?
 
+                                }
+                                else
+                                {
+                                    Logger.Log(Logger.LogLevel.Error,
+                                               "Block submittance failed with height {0} and error {1}!",
+                                               block.BlockHeight, submitblock["result"]["status"]);
+                                }
 
                             }
-                            else
+                            catch
                             {
-                                Logger.Log(Logger.LogLevel.Error,
-                                           "Block submittance failed with height {0} and error {1}!",
-                                           block.BlockHeight, submitblock["result"]["status"]);
                             }
                             Statics.BlocksPendingSubmition.RemoveAt(i);
                             i--;
