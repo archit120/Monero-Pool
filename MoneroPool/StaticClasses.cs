@@ -119,6 +119,26 @@ namespace MoneroPool
 
         }
 
+        public static double GetMinerWorkerHashRate(MinerWorker worker)
+        {
+            ulong time =
+                (ulong)
+                (worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count - 4).First().Key -
+                 worker.ShareDifficulty.Last().Key).Seconds;
+            return GetHashRate(
+                worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count - 4)
+                      .ToDictionary(x => x.Key, x => (uint)x.Value)
+                      .Values.ToList(), time);
+
+        }
+        public static double GetMinerHashRate(Miner worker)
+        {
+            double hashRate = 0;
+            worker.MinersWorker.ForEach(x=>hashRate +=Statics.RedisDb.MinerWorkers.First(x2=>x2.Identifier==x).HashRate);
+            return hashRate;
+        }
+
+
         public static uint WorkerVardiffDifficulty(ConnectedWorker worker)
         {
             //We calculate average of last 4 shares.

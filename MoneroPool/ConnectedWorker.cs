@@ -25,6 +25,9 @@ namespace MoneroPool
         public int JobSeed { get; set; }
         public int CurrentBlock { get; set; }
 
+        public int TotalShares { get; set; }
+        public int RejectedShares { get; set; }
+
         private DateTime _lastjoborshare;
         private DateTime _share;
 

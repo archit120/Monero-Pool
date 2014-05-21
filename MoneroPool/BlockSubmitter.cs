@@ -45,6 +45,7 @@ namespace MoneroPool
                                     //
                                     rBlock.Found = true;
                                     rBlock.Founder = block.Founder;
+                                    rBlock.FoundDateTime = DateTime.Now;
 
                                     Statics.RedisDb.SaveChanges(rBlock);
 

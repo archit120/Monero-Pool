@@ -20,7 +20,8 @@ namespace MoneroPool
         public List<Miner> Miners { get; private set; }
         public List<BlockReward> BlockRewards { get; private set; }
         public List<Share> Shares { get; private set; }
-        public List<MinerWorker> MinerWorkers { get; private set; } 
+        public List<MinerWorker> MinerWorkers { get; private set; }
+        public List<Ban> Bans { get; private set; } 
 
         public RedisPoolDatabase(IDatabase redisDb)
         {
@@ -36,6 +37,7 @@ namespace MoneroPool
             Shares = new List<Share>();
             MinerWorkers = new List<MinerWorker>();
             Information = new PoolInformation();
+            Bans = new List<Ban>();
 
             //Start with blocks
             Deserialize(Blocks);
@@ -44,6 +46,8 @@ namespace MoneroPool
             Deserialize(Shares);
             Deserialize(MinerWorkers);
             Deserialize(Information);
+            Deserialize(Bans);
+
         }
 
         private void Deserialize<T>(T obj)
@@ -238,18 +242,60 @@ namespace MoneroPool
             Blocks.Add(block);
 
         }
+        public void SaveChanges(Ban ban)
+        {
+            SaveChanges<Ban>(ban);
 
+            for (int i = 0; i < Bans.Count; i++)
+            {
+                if (Bans[i].Identifier == ban.Identifier)
+                {
+                    Bans.RemoveAt(i);
+                    Bans.Insert(i, ban);
+                    return;
+                }
+            }
+            Bans.Add(ban);
+
+        }
         public void SaveChanges(PoolInformation poolInformation)
         {
             Serialize(poolInformation);
             Information = poolInformation;
         }
+
+        private void Remove<T>(T obj)
+        {
+            Type t = typeof (T);
+            string guid = t.GetProperty("Identifier").GetValue(obj).ToString();
+            RedisDb.SortedSetRemove(t.Name, guid);
+            RedisDb.KeyDelete(guid);
+        }
+        public void Remove(MinerWorker worker)
+        {
+            Remove<MinerWorker>(worker);
+            MinerWorkers.Remove(worker);
+        }
+    }
+
+    public class Ban
+    {
+        public string IpBan { get; set; }
+        public string AddressBan { get; set; }
+        public string Identifier { get; set; }
+        public DateTime Begin { get; set; }
+        public int Minutes { get; set; }
+
+        public Ban()
+        {
+            Identifier = Guid.NewGuid().ToString();
+        }
     }
 
     public class PoolInformation
     {
-        public int LastPaidBlock;
-        public int CurrentBlock;
+        public int LastPaidBlock { get; set; }
+        public int CurrentBlock { get; set; }
         public double NewtworkHashRate { get; set; }
         public double PoolHashRate { get; set; }
 
@@ -265,6 +311,8 @@ namespace MoneroPool
         public string Founder { get; set; }
         public bool Found { get; set; }
         public int BlockHeight { get; set; }
+        public bool Orphan { get; set; }
+        public DateTime FoundDateTime { get; set; }
 
         public List<string> BlockRewards { get; set; }
 
@@ -281,20 +329,25 @@ namespace MoneroPool
     {
         public string Identifier { get; set; }
         public string Address { get; set; }
-        public double HashRate { get; set; }
+        public Dictionary<DateTime,double> TimeHashRate { get; set; }
         public List<string> MinersWorker { get; set; }
-        public List<string> BlockReward { get; set; } 
+        public List<string> BlockReward { get; set; }
+
+
 
         public Miner(string address, double hashRate)
         {
             MinersWorker = new List<string>();
             BlockReward = new List<string>();
             Address = address;
-            HashRate = hashRate;
-            Identifier=Guid.NewGuid().ToString();
+            TimeHashRate = new Dictionary<DateTime, double>();
+            TimeHashRate.Add(DateTime.Now, hashRate);
+            Identifier = Guid.NewGuid().ToString();
         }
+
         public Miner()
-        {}
+        {
+        }
     }
 
     public class BlockReward
@@ -345,16 +398,35 @@ namespace MoneroPool
         public string Miner { get; set; }
         public double HashRate { get; set; }
 
-        public MinerWorker(string miner, double hashRate)
+        public List<KeyValuePair<TimeSpan, ulong>> ShareDifficulty { get; private set; }
+
+        private DateTime _lastjoborshare;
+        private DateTime _share;
+
+        public MinerWorker(string identifier,string miner, double hashRate)
         {
             Miner = miner;
             HashRate = hashRate;
             Connected = DateTime.Now;
-            Identifier = Guid.NewGuid().ToString();
+            Identifier = identifier;
+            ShareDifficulty = new List<KeyValuePair<TimeSpan, ulong>>();
         }
 
         public MinerWorker()
         {
+        }
+
+        public void NewJobRequest()
+        {
+            _lastjoborshare = DateTime.Now;
+        }
+
+        public void ShareRequest(ulong difficulty)
+        {
+            _share = DateTime.Now;
+            ShareDifficulty.Add(new KeyValuePair<TimeSpan, ulong>(_share - _lastjoborshare, difficulty));
+            _lastjoborshare = _share;
+            HashRate = Helpers.GetMinerWorkerHashRate(this);
         }
     }
 }

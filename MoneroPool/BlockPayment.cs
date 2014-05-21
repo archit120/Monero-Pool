@@ -21,7 +21,7 @@ namespace MoneroPool
              Dictionary<string, double> sharePerAddress = new Dictionary<string, double>();
              int lastPaidBlock = 0;
 
-             long totalShares = 0;
+             double totalShares = 0;
 
              try
              {
@@ -53,6 +53,7 @@ namespace MoneroPool
                      foreach (var share in Statics.RedisDb.Shares.Where(x => blockReward.Shares.Contains(x.Identifier)))
                      {
                          shares += share.Value;
+                         totalShares += share.Value;
                      }
 
                  }
@@ -106,19 +107,23 @@ namespace MoneroPool
                     string hash = pBlock.BlockHash;
                     JObject param = new JObject();
                     param["hash"] = hash;
-                    JObject block = (JObject) (await Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyhash", param))["result"]["block_header"];
+                    JObject block = (JObject) (await Statics.DaemonJson.InvokeMethodAsync("getblockheaderbyhash",param))["result"]["block_header"];
                     int confirms = (int) block["depth"];
                     if (!(bool) block["orphan_status"] &&
                         confirms >= int.Parse(Statics.Config.IniReadValue("block-confirms")))
                     {
                         //Do payments
                         InitiatePayments((ulong)block["reward"], pBlock);
+                     
                         Statics.BlocksPendingPayment.RemoveAt(i);
                         i--;
                     }
                     if ((bool) block["orphan_status"])
                     {
-                        //Orphaned
+                        //Orphaned      
+                        Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == pBlock.BlockHeight);
+                        rBlock.Orphan = true;
+                        Statics.RedisDb.SaveChanges(rBlock);
                         Statics.BlocksPendingPayment.RemoveAt(i);
                         i--;
                     }

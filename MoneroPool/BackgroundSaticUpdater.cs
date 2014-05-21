@@ -86,15 +86,19 @@ namespace MoneroPool
                 var list = Statics.ConnectedClients.ToList();
                 for (int i = 0; i < list.Count; i++)
                 {
+                    Miner miner = Statics.RedisDb.Miners.First(x => x.Address == list[i].Value.Address);
+                    miner.TimeHashRate.Add(DateTime.Now,Helpers.GetMinerHashRate(miner));
                     if ((DateTime.Now - list[i].Value.LastSeen).TotalSeconds >
                         int.Parse(Statics.Config.IniReadValue("client-timeout-seconds")))
                     {
                         Logger.Log(Logger.LogLevel.General, "Removing time out client {0}", list[i].Key);
                         Statics.ConnectedClients.Remove(list[i].Key);
-                        Miner miner = Statics.RedisDb.Miners.First(x => x.Address == list[i].Value.Address);
-                        miner.MinersWorker.RemoveAt(0);
-                        Statics.RedisDb.SaveChanges(miner);
+
+                        miner.MinersWorker.Remove(list[i].Key);
+                        Statics.RedisDb.Remove(Statics.RedisDb.MinerWorkers.First(x=>x.Identifier==list[i].Key));
                     }
+                    Statics.RedisDb.SaveChanges(miner);
+
                 }
                     System.Threading.Thread.Sleep(5000);
             }
