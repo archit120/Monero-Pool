@@ -36,12 +36,12 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 
 #### Requirements
 * Coin daemon and wallet daemon
-##### On Linux:
+#### On Linux:
 * [G++](https://gcc.gnu.org/) compiler and [Mono 3.2+](http://www.mono-project.com/Main_Page) 
 * [Redis](http://redis.io/) key-value store
-##### On Windows:
-# [Visual Studio 2012+] (http://www.visualstudio.com/) 
-# [.Net framework 4.5] (http://www.microsoft.com/en-in/download/details.aspx?id=30653) 
+#### On Windows:
+* [Visual Studio 2012+] (http://www.visualstudio.com/) 
+* [.Net framework 4.5] (http://www.microsoft.com/en-in/download/details.aspx?id=30653) 
 * [Redis](http://redis.io/) key-value store
 
 #### 1) Downloading & Installing
