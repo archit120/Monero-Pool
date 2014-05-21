@@ -72,7 +72,7 @@ namespace MoneroPool
             string[] Lines = File.ReadAllLines(path);
             if (Lines.Where(line => line.StartsWith(Key)).ToArray().Length > 0)
                 return Lines.Where(line => line.StartsWith(Key)).Take(1).ToArray()[0].Replace(Key + "=", "");
-            else return "";
+            else throw new Exception(string.Format("Couldn't find {0} key in config. Check your config file", Key));
         }
     }
 }

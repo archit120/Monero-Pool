@@ -64,7 +64,7 @@ namespace MoneroPool
 
              int fee = 100 + int.Parse(Statics.Config.IniReadValue("pool-fee"));
 
-             double rewardPerShare = (double)reward / ((double)(fee * totalShares) / 100);
+             double rewardPerShare = (double)reward / ((double)((100 + fee) * totalShares) / 100);
 
              JObject param = new JObject();
 
