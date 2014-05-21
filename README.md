@@ -21,13 +21,14 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 * Highly scalable pool server which tries to get the maximum juice out of multiple cores of your server without using Synchronous blocking.
 * Extremely detailed logging with variable settings.
 * Extremely intricate error management so that the server never crashes out on you.
-* Compatibility with all major OSes
-
+* Compatibility with all major OSes.
+* IP banning.
+* Payment processing.
+* Extremely detailed database.
+* Front end with individual miner statistics and beautiful charts/
 
 #### Under Development
 * Vardiff support
-* IP banning
-* Payment processing
 * Address validation
 * Live stats
 
