@@ -24,6 +24,9 @@
         <!-- Local JavaScript -->
         <script src="js/docs.js"></script>
         <script src="js/github.info.js"></script>
+		<script src="js/date.js"></script>
+		<script src="js/Chart.min.js"></script>
+
         <title>Monero Pool : Address</title>
 
         <style>
@@ -35,7 +38,7 @@
         <div class ="container text-center" style="padding: 50px">
             <h1>Address
             </h1>
-            <h3 id="adfoundh3">No address selected. Search for one.</h3>
+            <h3 style="font-size:1.8rem;" id="adfoundh3">No address selected. Search for one.</h3>
             <p id="adfoundp" class="tertiary-text"></p>
         </div>
         
@@ -52,15 +55,28 @@
         
         <div id="adfounddiv" class="container" style="padding-top: 40px;padding-bottom: 40px; display: none;">
             <div class="grid border">
-                <div class="row">
+				<div class="row">
                     <div class="span4">
-                        <h3>
-                            Total Reward 
+                        <h3 style="font-size:1.8rem;">
+                            Total paid out
                             <sub>Approximate</sub>
                         </h3>
                     </div>
                     <div class="span8" >
-                        <h3 id="reward">
+                        <h3 id="paidout" style="font-size:1.8rem;">
+                        </h3> 
+                    </div>
+
+                </div> 
+                <div class="row">
+                    <div class="span4">
+                        <h3 style="font-size:1.8rem;">
+                            Shares this round
+                            <sub>Approximate</sub>
+                        </h3>
+                    </div>
+                    <div class="span8" >
+                        <h3 id="roundshare" style="font-size:1.8rem;">
                         </h3> 
                     </div>
 
@@ -68,12 +84,12 @@
                 
                 <div class="row">
                     <div class="span4">
-                        <h3>
+                        <h3 style="font-size:1.8rem;">
                             Connected Miners 
                         </h3>
                     </div>
                     <div class="span8" >
-                        <h3 id="miners">
+                        <h3 style="font-size:1.8rem;" id="miners">
                         </h3> 
                     </div>
 
@@ -81,12 +97,12 @@
                 
                 <div class="row">
                     <div class="span4">
-                        <h3>
+                        <h3 style="font-size:1.8rem;">
                             Total Hash Rate 
                         </h3>
                     </div>
                     <div class="span8" >
-                        <h3 id="hr">
+                        <h3 style="font-size:1.8rem;" id="hr">
                         </h3> 
                     </div>
 
@@ -97,9 +113,14 @@
 
 			
 			<div class="grid">
-				<div id="blocksfoundrow" class="row">
+				<div id="blocksfoundrow" class="row" style="padding-left:10px; padding-right:10px">
 					
 				</div>
+			</div>
+			
+			<div style="padding-top:50px;">
+				<canvas id="myChart" style="width: 100%; height: 45rem;"></canvas>
+				<h2 class="text-center" style="font-size : 1.3rem;">Total hash rate graph</h2>
 			</div>
         </div>
         
@@ -126,6 +147,14 @@
         </div>
 
         <script>
+		 var rem = function rem() {
+        var html = document.getElementsByTagName('html')[0];
+
+        return function () {
+            return parseInt(window.getComputedStyle(html)['fontSize']);
+        }
+    }();
+	
             var qs = (function (a) {
                 if (a == "") return {};
                 var b = {};
@@ -148,17 +177,39 @@
 
                     $.getJSON("address.php", "address="+qs["address"], function (data) {
                         if (data["found"] == true) {
-                            $("#reward").html(data["reward"]);
+                            $("#roundshare").html(data["roundshare"]);
                             $("#miners").html(data["miners"]);
                             $("#hr").html(data["hashrate"]);
+                            $("#paidout").html(data["totalpaidout"]);
+							
 
                             var items = [];
                             data["blocks"].forEach(function (val) {
-                                items.push("<div class=\"span2 bg-lighterBlue text-center\"><h3 class=\"fg-white font-size: 20px; line-height: 15px; margin-bottom: 10px\">"+ val +"</h3></div>");
+                                items.push("<div class=\"span2 bg-lighterBlue text-center\"><h3 style=\"font-size:1.8rem; line-height: 15px; margin-bottom: 10px\" class=\"fg-white\">"+ val +"</h3></div>");
 
                             });
 							
 							$("#blocksfoundrow").append(items);
+							$("#myChart").attr("width", $("#myChart").parent().width());
+							$("#myChart").attr("height", rem() * 45);
+
+							var ctx = document.getElementById("myChart").getContext("2d");
+							var data = {
+								labels : data["labels"],
+								datasets : [
+									{
+										fillColor : "rgba(0,0,0,0.5)",
+										strokeColor : "rgba(0,0,0,1)",
+										pointColor : "rgba(0,0,0,1)",
+										pointStrokeColor : "#fff",
+										data : data["data"]
+									}
+								]
+							};
+							new Chart(ctx).Line(data);
+							
+							
+						
                         } else {
                             $("#adfounddiv").hide();
                             $("#search").show();

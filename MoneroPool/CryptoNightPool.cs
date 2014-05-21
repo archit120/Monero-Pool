@@ -101,6 +101,8 @@ namespace MoneroPool
        {
            ConnectedWorker worker = Statics.ConnectedClients[guid];
 
+            Statics.TotalShares++;
+
             worker.ShareRequest(worker.CurrentDifficulty);
             Statics.RedisDb.MinerWorkers.First(x=>x.Identifier==guid).ShareRequest(worker.CurrentDifficulty);
            byte[] prevJobBlock = Helpers.GenerateShareWork(worker.JobSeed);
@@ -130,7 +132,7 @@ namespace MoneroPool
 
                if (shareProcess == ShareProcess.ValidShare || shareProcess == ShareProcess.ValidBlock)
                {
-                   Statics.HashRate.Difficulty = worker.CurrentDifficulty;
+                   Statics.HashRate.Difficulty += worker.CurrentDifficulty;
                    Statics.HashRate.Time = (ulong) ((DateTime.Now - Statics.HashRate.Begin).TotalSeconds);
                    try
                    {
@@ -215,6 +217,11 @@ namespace MoneroPool
             JObject result = new JObject();
             JObject job = new JObject();
 
+           if (!Helpers.IsValidAddress(address, uint.Parse(Statics.Config.IniReadValue("base58-prefix"))))
+           {
+               result["status"] = "Invalid Address";
+               return;
+           }
 
             ConnectedWorker worker = new ConnectedWorker();
             worker.Address = address;

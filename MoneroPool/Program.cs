@@ -85,7 +85,7 @@ namespace MoneroPool
             Statics.WalletJson = new JsonRPC(config.IniReadValue("wallet-json-rpc"));
 
 
-            BackgroundSaticUpdater backgroundSaticUpdater = new BackgroundSaticUpdater();
+            BackgroundStaticUpdater backgroundSaticUpdater = new BackgroundStaticUpdater();
             backgroundSaticUpdater.Start();
 
             BlockPayment blockPayment = new BlockPayment();

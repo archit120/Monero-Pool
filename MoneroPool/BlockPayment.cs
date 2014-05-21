@@ -75,7 +75,9 @@ namespace MoneroPool
                  JObject destination = new JObject();
                  destination["amount"] = (long)(addressShare.Value * rewardPerShare);
                  destination["address"] = addressShare.Key;
-
+                 Miner miner = Statics.RedisDb.Miners.First(x => x.Address == addressShare.Key);
+                 miner.TotalPaidOut += (ulong) (addressShare.Value*rewardPerShare);
+                 Statics.RedisDb.SaveChanges(miner);
                  destinations.Add(destination);
              }
 

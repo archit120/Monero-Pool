@@ -8,12 +8,10 @@
 #include <assert.h>
 #include <string>
 #include <vector>
-#include <cstdint>
 
-#include "hash-ops.h"
 #include "int-util.h"
-#include "keccak.h"
 #include "varint.h"
+#include "keccak.h"
 
 namespace tools
 {
@@ -158,6 +156,29 @@ namespace tools
       }
     }
 
+    std::string encode(const std::string& data)
+    {
+      if (data.empty())
+        return std::string();
+
+      size_t full_block_count = data.size() / full_block_size;
+      size_t last_block_size = data.size() % full_block_size;
+      size_t res_size = full_block_count * full_encoded_block_size + encoded_block_sizes[last_block_size];
+
+      std::string res(res_size, alphabet[0]);
+      for (size_t i = 0; i < full_block_count; ++i)
+      {
+        encode_block(data.data() + i * full_block_size, full_block_size, &res[i * full_encoded_block_size]);
+      }
+
+      if (0 < last_block_size)
+      {
+        encode_block(data.data() + full_block_count * full_block_size, last_block_size, &res[full_block_count * full_encoded_block_size]);
+      }
+
+      return res;
+    }
+
     bool decode(const std::string& enc, std::string& data)
     {
       if (enc.empty())
@@ -190,7 +211,6 @@ namespace tools
       return true;
     }
 
-
     bool decode_addr(std::string addr, uint64_t& tag, std::string& data)
     {
       std::string addr_data;
@@ -202,13 +222,14 @@ namespace tools
       checksum = addr_data.substr(addr_data.size() - addr_checksum_size);
 
       addr_data.resize(addr_data.size() - addr_checksum_size);
-      char hash[HASH_SIZE];
-	  keccak1600((uint8_t*)addr_data.data(), addr_data.size(), (uint8_t*)hash);
+      char hash[200];
+	  keccak1600((const uint8_t*)addr_data.data(), addr_data.size(), (uint8_t*)hash);
       std::string expected_checksum(reinterpret_cast<const char*>(&hash), addr_checksum_size);
       if (expected_checksum != checksum) return false;
 
       int read = tools::read_varint(addr_data.begin(), addr_data.end(), tag);
-      if (read <= 0) return false;
+      if (read <= 0) 
+		  return false;
 
       data = addr_data.substr(read);
       return true;

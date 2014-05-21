@@ -65,6 +65,8 @@ namespace MoneroPool
 
     public static class Statics
     {
+        public static volatile uint TotalShares;
+
         public static volatile StaticsLock Lock;
 
         public static volatile JObject CurrentBlockTemplate;
@@ -101,7 +103,7 @@ namespace MoneroPool
         }
         public static double GetHashRate(double difficulty, ulong time)
         {
-            //Thanks surfer43
+            //Thanks surfer43    , seriously thank you, It works great
 
             return difficulty / time;
         }
@@ -121,14 +123,15 @@ namespace MoneroPool
 
         public static double GetMinerWorkerHashRate(MinerWorker worker)
         {
-            ulong time =
-                (ulong)
-                (worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count - 4).First().Key -
-                 worker.ShareDifficulty.Last().Key).Seconds;
-            return GetHashRate(
-                worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count - 4)
-                      .ToDictionary(x => x.Key, x => (uint)x.Value)
-                      .Values.ToList(), time);
+            //don't covnert to dictionary, rare but as seen in testing time stamps may be same
+            double time = 0;
+            double difficulty = 0;
+            foreach (var shareDifficulty in worker.ShareDifficulty)
+            {
+                time += shareDifficulty.Key.TotalSeconds;
+                difficulty += shareDifficulty.Value;
+            }
+            return GetHashRate(difficulty, (ulong)time);
 
         }
         public static double GetMinerHashRate(Miner worker)
@@ -202,6 +205,8 @@ namespace MoneroPool
 
         public static string GetRequestBody(Mono.Net.HttpListenerRequest request)
         {
+            //disposale messes up mono
+
             string documentContents;
             StreamReader readStream = new StreamReader(request.InputStream, Encoding.UTF8);
 
@@ -242,6 +247,14 @@ namespace MoneroPool
             }
            Logger.Log(Logger.LogLevel.General, "Valid share found with hash:{0}", BitConverter.ToString(blockHash).Replace("-", ""));
             return ShareProcess.ValidShare;
+        }
+
+        public static bool IsValidAddress(string address, uint prefix)
+        {
+            uint ret = NativeFunctions.check_account_address(address, prefix);
+            if (ret == 0)
+                return false;
+            return true;
         }
 
     }

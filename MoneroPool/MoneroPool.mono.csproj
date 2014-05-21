@@ -69,7 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BackgroundSaticUpdater.cs" />
+    <Compile Include="BackgroundStaticUpdater.cs" />
     <Compile Include="BlockPayment.cs" />
     <Compile Include="BlockSubmitter.cs" />
     <Compile Include="ConnectedWorker.cs" />

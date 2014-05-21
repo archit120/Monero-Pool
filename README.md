@@ -25,20 +25,22 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 * IP banning.
 * Payment processing.
 * Extremely detailed database.
-* Front end with individual miner statistics and beautiful charts/
+* Front end with individual miner statistics and beautiful charts.
+* Address validation.
 
 #### Under Development
 * Vardiff support
-* Address validation
 * Live stats
 
 ===
 
 #### Requirements
 * Coin daemon and wallet daemon
+
 #### On Linux:
 * [G++](https://gcc.gnu.org/) compiler and [Mono 3.2+](http://www.mono-project.com/Main_Page) 
 * [Redis](http://redis.io/) key-value store
+
 #### On Windows:
 * [Visual Studio 2012+] (http://www.visualstudio.com/) 
 * [.Net framework 4.5] (http://www.microsoft.com/en-in/download/details.aspx?id=30653) 
@@ -98,11 +100,14 @@ MoneroPool.exe
 
 #### 4) Configure the front-end
 
-Edit the various php files
-TODO
+Edit the config.json
+```javascript
+{"scheme":"tcp","host":"192.168.1.4","port":6379}
+```
+Download and extract [Predis](https://github.com/nrk/predis) to the root directroy of front end. Host with a webserver capable of [PHP](http://www.php.net/).
 
 #### Upgrading
-When upgrading it is ighly recommended to wait for an official release. Since the pool is still in extremely beta stage many big changes may be implemented so follow the step listed in release carefully while upgrading.
+When upgrading it is highly recommended to wait for an official release. Since the pool is still in extremely beta stage many big changes may be implemented so follow the step listed in release carefully while upgrading.
 
 ### Setting up Testnet
 

@@ -298,6 +298,9 @@ namespace MoneroPool
         public int CurrentBlock { get; set; }
         public double NewtworkHashRate { get; set; }
         public double PoolHashRate { get; set; }
+        public double SharesPerSecond { get; set; }
+        public ulong RoundShares { get; set; }
+        public int BaseDificulty { get; set; }
 
         public PoolInformation()
         {
@@ -332,7 +335,7 @@ namespace MoneroPool
         public Dictionary<DateTime,double> TimeHashRate { get; set; }
         public List<string> MinersWorker { get; set; }
         public List<string> BlockReward { get; set; }
-
+        public ulong TotalPaidOut { get; set; }
 
 
         public Miner(string address, double hashRate)
@@ -397,8 +400,18 @@ namespace MoneroPool
         public DateTime Connected { get; set; }
         public string Miner { get; set; }
         public double HashRate { get; set; }
+        private List<KeyValuePair<TimeSpan, ulong>> _shareDifficulty;
 
-        public List<KeyValuePair<TimeSpan, ulong>> ShareDifficulty { get; private set; }
+        public List<KeyValuePair<TimeSpan, ulong>> ShareDifficulty { get{
+            if (_shareDifficulty == null)
+            {
+                _shareDifficulty = new List<KeyValuePair<TimeSpan, ulong>>();
+            }
+            return _shareDifficulty;
+
+        }
+            private set { _shareDifficulty = value; }
+        }
 
         private DateTime _lastjoborshare;
         private DateTime _share;

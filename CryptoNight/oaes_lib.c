@@ -27,6 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * ---------------------------------------------------------------------------
  */
+
+#define _CRT_SECURE_NO_WARNINGS
+
 static const char _NR[] = {
 	0x4e,0x61,0x62,0x69,0x6c,0x20,0x53,0x2e,0x20,
 	0x41,0x6c,0x20,0x52,0x61,0x6d,0x6c,0x69,0x00 };
@@ -513,7 +516,7 @@ static uint32_t oaes_get_seed(void)
 	_test = (char *) calloc( sizeof( char ), timer.millitm );
 	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
 			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.millitm +
-			(uintptr_t) ( _test + timer.millitm ) + getpid();
+			(uintptr_t) ( _test + timer.millitm ) + _getpid();
 
 	if( _test )
 		free( _test );

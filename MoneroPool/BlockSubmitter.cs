@@ -61,7 +61,7 @@ namespace MoneroPool
 
                                     Statics.BlocksPendingPayment.Add(block);
 
-                                    BackgroundSaticUpdater.ForceUpdate();
+                                    BackgroundStaticUpdater.ForceUpdate();
                                     //Force statics update to prevent creating orhpans ourselves, you don't want that now do you?
 
                                 }

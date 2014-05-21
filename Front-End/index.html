@@ -63,7 +63,63 @@
                 </div>
             </div>
         </div>
-        <div class="container text-center" style="padding-top: 80px; font-size: 80px">
+		<div class="bg-dark fg-white"  style="padding-top: 40px; padding-bottom:30px;">
+			<div class="container fg-white text-center">
+				<div style="padding: 20px" class="grid no-margin">
+					<div class="row">						
+						<div class="span4">
+						</div>
+						<div class="span4">
+							<h2 class="fg-white" style="font-size:2rem">Pool Stats</h2>
+						</div>
+						<div class="span4">
+							<h2 class="fg-white" style="font-size:2rem">Network Stats</h2>
+						</div>
+					</div>
+					<div class="row">
+						<div class="span4">
+						<h2 class="fg-white" style="font-size:2rem">Hashrate <span class="icon-meter-fast"/></h2>
+						</div>
+						<div class="span4">
+						<h2 class="fg-white" id="poolhash" style="font-size:2rem"></h2>
+						</div><div class="span4">
+						<h2 class="fg-white" id="networkhash" style="font-size:2rem"></h2>
+						</div>
+					</div>
+					<div class="row">
+						<div class="span4">
+						<h2 class="fg-white" style="font-size:2rem">POW difficulty <span class="icon-plus"/></h2>
+						</div>
+						<div class="span4">
+						<h2 class="fg-white" id="poolbasediff" style="font-size:2rem"></h2>
+						</div><div class="span4">
+						<h2 class="fg-white" id="networkdiff" style="font-size:2rem"></h2>
+						</div>			
+					</div>
+					<div class="row">
+						<div class="span4">
+						<h2 class="fg-white" style="font-size:2rem">POW rate <span class="icon-dashboard"/></h2>
+						</div>
+						<div class="span4">
+						<h2 class="fg-white" id="poolspeed" style="font-size:2rem">3 every 1 second</h2>
+						</div><div class="span4">
+						<h2 class="fg-white" id="networkspeed" style="font-size:2rem">1 every 60 seconds</h2>
+						</div>			
+					</div>
+					<div class="row">
+						<div class="span4">
+						<h2 class="fg-white" style="font-size:2rem">POW <span class="icon-layers"/></h2>
+						</div>
+						<div class="span4">
+						<h2 class="fg-white" id="poolshares" style="font-size:2rem"></h2>
+						</div><div class="span4">
+						<h2 class="fg-white" id="networkblock" style="font-size:2rem"></h2>
+						</div>			
+					</div>
+				</div>
+			</div>
+		</div>
+        <div class="text-center" style="padding-top: 80px; font-size: 80px; padding-left:20px; padding-right:20px;">
             <h2 class="font-size: 80px">Top 10 Adresses</h2>
                  
             <div class="grid" id="top10">
@@ -74,7 +130,7 @@
                             </h3>
                     </div>
                     
-                    <div class="span4 offset1">
+                    <div class="span7 offset1">
                         <h3>MHash/s</h3>
                     </div>
                 </div>
@@ -86,12 +142,53 @@
                 $.getJSON("top10.php", function (data) {
                     var items = [];
                     $.each(data, function (key, val) {
-                        items.push("<div class='row'> <div class='span8'><p>" + key + "</p></div><div class='span4 offset1'><p>" + val + "</p></div></div>");
+                        items.push("<div class='row'> <div class='span8'><p>" + key + "</p></div><div class='span7 offset1'><p>" + val + "</p></div></div>");
                     });
                     $("#top10").append(items);
                 });
             });
-            
+            $("document").ready(function() {
+                $.getJSON("stats.php", function (data) {
+					$("#poolhash").html(getHashReadable(jQuery.parseJSON(data["PoolHashRate"])));	
+					$("#networkhash").html(getHashReadable(jQuery.parseJSON(data["NewtworkHashRate"])));	
+					$("#networkblock").html(jQuery.parseJSON(data["CurrentBlock"]));	
+					$("#poolshares").html(jQuery.parseJSON(data["RoundShares"]));
+					$("#poolbasediff").html(jQuery.parseJSON(data["BaseDificulty"]));
+					$("#networkdiff").html((jQuery.parseJSON(data["NewtworkHashRate"])/60).toFixed(0));
+					var SharesPerSecond = jQuery.parseJSON(data["SharesPerSecond"]);
+					var secondsPerShare = 1/SharesPerSecond;
+					if(secondsPerShare>1)
+					{
+						$("#poolspeed").html("1 every "+secondsPerShare.toFixed(0).toString() + " seconds");
+					}
+					else
+					{
+                        $("#poolspeed").html(SharesPerSecond.toFixed(0).toString() +" every 1 seconds");
+
+					}
+	//networkdiff
+				});
+			});		
+
+			function getHashReadable(hash)
+			{
+			    var suffix = " H/Sec"
+				if(hash < 1024)
+				{
+					return hash.toFixed(4).toString() + suffix;
+				}
+				else
+				{
+					suffix = " KH/Sec"
+					hash = hash/1024;
+					if(hash > 1024)
+					{
+						suffix = " MH/Sec"
+						hash=hash/1024;
+					}
+					return hash.toFixed(3).toString() + suffix;
+				}
+			}
         </script>
     </body>
 </html>

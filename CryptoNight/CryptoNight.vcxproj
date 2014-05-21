@@ -98,6 +98,8 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="address.cpp" />
+    <ClCompile Include="base58.cpp" />
     <ClCompile Include="blake256.cpp" />
     <ClCompile Include="groestl.cpp" />
     <ClCompile Include="hash-extra-blake.cpp" />
@@ -112,6 +114,8 @@
     <ClCompile Include="cn-hash.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="address.h" />
+    <ClInclude Include="base58.h" />
     <ClInclude Include="blake256.h" />
     <ClInclude Include="groestl.h" />
     <ClInclude Include="groestl_tables.h" />
@@ -124,6 +128,7 @@
     <ClInclude Include="skein.h" />
     <ClInclude Include="skein_port.h" />
     <ClInclude Include="hash.h" />
+    <ClInclude Include="varint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

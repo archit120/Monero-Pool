@@ -15,6 +15,9 @@ namespace MoneroPool
         [DllImport("CryptoNight", EntryPoint = "cn_fast_hash")]
         public static extern void cn_fast_hash(byte[] data, uint length, byte[] hash);
 
+        [DllImport("CryptoNight", EntryPoint = "check_account_address")]
+        public static extern UInt32 check_account_address(string address, UInt32 prefix);
+
 
         public static bool IsLinux
         {

@@ -51,6 +51,12 @@
     <ClCompile Include="cn-hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base58.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="address.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blake256.h">
@@ -87,6 +93,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="address.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base58.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="varint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

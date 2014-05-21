@@ -62,10 +62,22 @@
                             </h3>
                     </div>
                 </div>
+				<div class="row border" id="none" style="display: none">
+					<div class="span12 text-center">
+						<h3>No blocks found yet, join us!</h3>
+					</div>
                 
             </div>  
             </div>
-        
-        
+           <script>
+            $("document").ready(function() {
+                $.getJSON("top50block.php", function (data) {
+					if(data.length == 0)
+					{
+						$("#none").show();
+					}
+				})
+			});
+        </script>
     </body>
 </html>
