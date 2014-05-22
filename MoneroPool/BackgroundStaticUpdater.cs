@@ -101,34 +101,39 @@ namespace MoneroPool
                     var list = Statics.ConnectedClients.ToList();
                     for (int i = 0; i < list.Count; i++)
                     {
-                        Miner miner = Statics.RedisDb.Miners.First(x => x.Address == list[i].Value.Address);
-                        if (miner.TimeHashRate==null)
+                        try
                         {
-                            miner.TimeHashRate = new Dictionary<DateTime, double>();
-                            miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
+                            Miner miner = Statics.RedisDb.Miners.First(x => x.Address == list[i].Value.Address);
+                            if (miner.TimeHashRate == null)
+                            {
+                                miner.TimeHashRate = new Dictionary<DateTime, double>();
+                                miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
+                            }
+
+                            if ((DateTime.Now - list[i].Value.LastSeen).TotalSeconds >
+                                int.Parse(Statics.Config.IniReadValue("client-timeout-seconds")))
+                            {
+                                Logger.Log(Logger.LogLevel.General, "Removing time out client {0}", list[i].Key);
+                                Statics.ConnectedClients.Remove(list[i].Key);
+
+                                miner.MinersWorker.Remove(list[i].Key);
+                                miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
+
+                                Statics.RedisDb.Remove(
+                                    Statics.RedisDb.MinerWorkers.First(x => x.Identifier == list[i].Key));
+                            }
+                            else if ((DateTime.Now - miner.TimeHashRate.Last().Key).Minutes > 5)
+                                miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
+
+                            foreach (var cur in miner.TimeHashRate.Where(x => (DateTime.Now - x.Key).Days >= 1).ToList())
+                            {
+                                miner.TimeHashRate.Remove(cur.Key);
+                            }
+                            Statics.RedisDb.SaveChanges(miner);
                         }
-                       
-                        if ((DateTime.Now - list[i].Value.LastSeen).TotalSeconds >
-                            int.Parse(Statics.Config.IniReadValue("client-timeout-seconds")))
+                        catch
                         {
-                            Logger.Log(Logger.LogLevel.General, "Removing time out client {0}", list[i].Key);
-                            Statics.ConnectedClients.Remove(list[i].Key);
-
-                            miner.MinersWorker.Remove(list[i].Key); 
-                            miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
-
-                            Statics.RedisDb.Remove(
-                                Statics.RedisDb.MinerWorkers.First(x => x.Identifier == list[i].Key));
-                        } 
-                        else if ((DateTime.Now - miner.TimeHashRate.Last().Key).Minutes > 5)
-                            miner.TimeHashRate.Add(DateTime.Now, Helpers.GetMinerHashRate(miner));
-
-                        foreach (var cur in miner.TimeHashRate.Where(x=>(DateTime.Now - x.Key).Days>=1).ToList())
-                        {
-                            miner.TimeHashRate.Remove(cur.Key);
                         }
-                        Statics.RedisDb.SaveChanges(miner);
-
 
                     }
                     System.Threading.Thread.Sleep(5000);
