@@ -77,13 +77,20 @@ daemon-json-rpc=http://127.0.0.1:18081
 wallet-json-rpc=http://127.0.0.1:8082
 http-server=http://*:7707/
 wallet-address=41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV
-miner-target-hex=33333303
 redis-server=127.0.0.1
 redis-database=0
 client-timeout-seconds=60
 miner-start-difficulty=10
 base-difficulty=10
-pool-fee=0
+ban-reject-percentage=50
+ban-time-minutes=60
+block-confirms=60
+pool-fee=5
+base58-prefix=18
+ban-after-shares=10
+vardiff-targettime-seconds=30
+vardiff-targettime-deviation-allowed=1
+vardiff-targettime-maxdeviation=100
 ```
 
 #### 3) Start the pool
