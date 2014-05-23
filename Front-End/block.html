@@ -38,13 +38,12 @@
         <div class ="container text-center" style="padding: 50px">
             <h1>Block
             </h1>
-                        <h3 style="padding: 20px;">To be done!</h3>
 
         </div>
         
        <div class="container text-center" style="padding: 40px; font-size: 80px">
                  
-            <div class="grid" id="top10" >
+            <div class="grid" id="top50" >
                 <div class="row border">
                     <div class="span3">
                         <h3>
@@ -70,12 +69,46 @@
             </div>  
             </div>
            <script>
+		   function onReceiveJson(data)
+			{ 
+			var top = data["top"];
+						 var items = [];
+			items.push("<div class='row border'><div class='span3'><h3>Block Height </h3></div><div class='span6'><h3>Block Founder</h3></div><div class='span3'><h3> Block Confirmations</h3></div></div>");
+						$.each(data["blocks"], function (val) {
+							var values = jQuery.parseJSON(data["blocks"][val]);
+							var status = "";
+							if(values["Orphan"])
+								status="<h3 style='font-size: 1.5rem;' class='bg-lightRed'>Orphaned</h3>";
+							else
+							{
+								if((top - values["Height"]) > 60)
+									status="<h3 style='font-size: 1.5rem;' class='bg-lightGreen'>Confirmed</h3>";
+								else
+									status="<h3 style='font-size: 1.5rem;' class='bg-lighterBlue'>" + (60 - (top - values["Height"])) +" to go.</h3>";
+
+							}
+							items.push("<div class='row border'> <div class='span3'><h3 style='font-size: 1.5rem;'>" + values["Height"] + 
+							"</h3></div><div class='span6'><h3 style='font-size: 1.5rem;'>" + val["Founder"] + "</h3></div><div class='span3'>"
+							+status+"</div></div>");
+
+						});
+						                    $("#top50").html(items);
+			setTimeout(function(){
+					$.getJSON("top50block.php",  onReceiveJson);
+				},1*1000);		
+			}
+			
             $("document").ready(function() {
                 $.getJSON("top50block.php", function (data) {
-					if(data.length == 0)
+					if(data["blocks"].length == 0)
 					{
 						$("#none").show();
 					}
+					else
+					{
+						onReceiveJson(data);
+					}
+					
 				})
 			});
         </script>

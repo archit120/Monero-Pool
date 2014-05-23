@@ -74,7 +74,7 @@ namespace MoneroPool
                 else
                 {
                     Logger.Log(Logger.LogLevel.Error, "Redis connection failed. Shutting down");
-                    System.Diagnostics.Process.GetCurrentProcess().Close();
+                    Environment.Exit(-1);
                 }
             }
             Statics.BlocksPendingPayment = new List<PoolBlock>();

@@ -12,6 +12,8 @@ namespace MoneroPool
         public DateTime LastSeen { get; set; }
         public List<KeyValuePair<TimeSpan,ulong>> ShareDifficulty { get; private set; }
         private uint _currentDifficulty;
+        public DateTime LastShare { get; set; }
+
         public uint CurrentDifficulty { get
         {
             return _currentDifficulty;
@@ -47,6 +49,7 @@ namespace MoneroPool
             _share = DateTime.Now;
             ShareDifficulty.Add(new KeyValuePair<TimeSpan, ulong>(_share - _lastjoborshare, difficulty));
             _lastjoborshare = _share;
+            LastShare = DateTime.Now;
         }
     }
 }

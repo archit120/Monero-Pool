@@ -138,14 +138,21 @@
             </div>  
             </div>
         <script>
-            $("document").ready(function() {
-                $.getJSON("top10.php", function (data) {
-                    var items = [];
+		function onReceiveJson(data)
+			{   
+				var items = [];
+				items.push("<div class='row border'><div class='span8'><h3>Address</h3> </div><div class='span7 offset1'><h3>MHash/s</h3></div></div>");
                     $.each(data, function (key, val) {
                         items.push("<div class='row'> <div class='span8'><p>" + key + "</p></div><div class='span7 offset1'><p>" + val + "</p></div></div>");
                     });
-                    $("#top10").append(items);
-                });
+                    $("#top10").html(items); 
+			setTimeout(function(){
+					$.getJSON("top10.php", onReceiveJson);
+				},1*1000);								
+			}
+			
+            $("document").ready(function() {
+                $.getJSON("top10.php", onReceiveJson);
             });
             $("document").ready(function() {
                 $.getJSON("stats.php", function (data) {

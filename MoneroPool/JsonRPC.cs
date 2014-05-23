@@ -14,6 +14,7 @@ namespace MoneroPool
     public class JsonRPC
     {
         public string Url { get; private set; }
+
         public JsonRPC(string URL)
         {
             Url = URL;
@@ -26,106 +27,123 @@ namespace MoneroPool
 
         public JObject InvokeMethod(string a_sMethod, params object[] a_params)
         {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url +"/"+ "json_rpc");
-            //webRequest.Credentials = Credentials;
-
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-
-            JObject joe = new JObject();
-            joe["jsonrpc"] = "2.0";
-            joe["id"] = "test";
-            joe["method"] = a_sMethod;
-
-            if (a_params != null)
+            try
             {
-                if (a_params.Length > 0)
+                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(Url + "/" + "json_rpc");
+                //webRequest.Credentials = Credentials;
+
+                webRequest.ContentType = "application/json-rpc";
+                webRequest.Method = "POST";
+
+                JObject joe = new JObject();
+                joe["jsonrpc"] = "2.0";
+                joe["id"] = "test";
+                joe["method"] = a_sMethod;
+
+                if (a_params != null)
                 {
-                   /* JArray props = new JArray();
-                    foreach (var p in a_params)
+                    if (a_params.Length > 0)
                     {
-                        props.Add(p);
-                    }   */
-                    //temp fix
-                    joe.Add(new JProperty("params", a_params[0]));
+                        /* JArray props = new JArray();
+                         foreach (var p in a_params)
+                         {
+                             props.Add(p);
+                         }   */
+                        //temp fix
+                        joe.Add(new JProperty("params", a_params[0]));
+                    }
                 }
-            }
 
-            string s = JsonConvert.SerializeObject(joe);
-            //s=s.Substring(0, s.Length - 1);
-            // serialize json for the request
-            byte[] byteArray = Encoding.UTF8.GetBytes(s);
-            webRequest.ContentLength = byteArray.Length;
+                string s = JsonConvert.SerializeObject(joe);
+                //s=s.Substring(0, s.Length - 1);
+                // serialize json for the request
+                byte[] byteArray = Encoding.UTF8.GetBytes(s);
+                webRequest.ContentLength = byteArray.Length;
 
-            using (Stream dataStream = webRequest.GetRequestStream())
-            {
-                
-                dataStream.Write(byteArray, 0, byteArray.Length);
-            }
-
-            using (WebResponse webResponse = webRequest.GetResponse())
-            {
-                using (Stream str = webResponse.GetResponseStream())
+                using (Stream dataStream = webRequest.GetRequestStream())
                 {
-                    using (StreamReader sr = new StreamReader(str))
+
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                }
+
+                using (WebResponse webResponse = webRequest.GetResponse())
+                {
+                    using (Stream str = webResponse.GetResponseStream())
                     {
-                        return JsonConvert.DeserializeObject<JObject>(sr.ReadToEnd());
+                        using (StreamReader sr = new StreamReader(str))
+                        {
+                            return JsonConvert.DeserializeObject<JObject>(sr.ReadToEnd());
+                        }
                     }
                 }
             }
-
+            catch (System.Net.WebException)
+            {
+                Logger.Log(Logger.LogLevel.Error, "RPC request time out! Shutting down.");
+                Environment.Exit(-1);
+            }
+            return null;
         }
 
         public async Task<JObject> InvokeMethodAsync(string a_sMethod, params object[] a_params)
         {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url + "/" + "json_rpc");
-            //webRequest.Credentials = Credentials;
-
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-
-            JObject joe = new JObject();
-            joe["jsonrpc"] = "2.0";
-            joe["id"] = "test";
-            joe["method"] = a_sMethod;
-
-            if (a_params != null)
+            try
             {
-                if (a_params.Length > 0)
+
+                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(Url + "/" + "json_rpc");
+                //webRequest.Credentials = Credentials;
+
+                webRequest.ContentType = "application/json-rpc";
+                webRequest.Method = "POST";
+
+                JObject joe = new JObject();
+                joe["jsonrpc"] = "2.0";
+                joe["id"] = "test";
+                joe["method"] = a_sMethod;
+
+                if (a_params != null)
                 {
-                    /* JArray props = new JArray();
-                     foreach (var p in a_params)
-                     {
-                         props.Add(p);
-                     }   */
-                    //temp fix
-                    joe.Add(new JProperty("params", a_params[0]));
-                }
-            }
-
-            string s = JsonConvert.SerializeObject(joe);
-            //s=s.Substring(0, s.Length - 1);
-            // serialize json for the request
-            byte[] byteArray = Encoding.UTF8.GetBytes(s);
-            webRequest.ContentLength = byteArray.Length;
-
-            using (Stream dataStream = webRequest.GetRequestStream())
-            {
-
-                await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
-            }
-
-            using (WebResponse webResponse = webRequest.GetResponse())
-            {
-                using (Stream str = webResponse.GetResponseStream())
-                {
-                    using (StreamReader sr = new StreamReader(str))
+                    if (a_params.Length > 0)
                     {
-                        return JsonConvert.DeserializeObject<JObject>(await sr.ReadToEndAsync());
+                        /* JArray props = new JArray();
+                         foreach (var p in a_params)
+                         {
+                             props.Add(p);
+                         }   */
+                        //temp fix
+                        joe.Add(new JProperty("params", a_params[0]));
+                    }
+                }
+
+                string s = JsonConvert.SerializeObject(joe);
+                //s=s.Substring(0, s.Length - 1);
+                // serialize json for the request
+                byte[] byteArray = Encoding.UTF8.GetBytes(s);
+                webRequest.ContentLength = byteArray.Length;
+
+                using (Stream dataStream = webRequest.GetRequestStream())
+                {
+
+                    await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
+                }
+
+                using (WebResponse webResponse = webRequest.GetResponse())
+                {
+                    using (Stream str = webResponse.GetResponseStream())
+                    {
+                        using (StreamReader sr = new StreamReader(str))
+                        {
+                            return JsonConvert.DeserializeObject<JObject>(await sr.ReadToEndAsync());
+                        }
                     }
                 }
             }
-
+            catch (System.Net.WebException)
+            {
+                Logger.Log(Logger.LogLevel.Error, "RPC request time out! Shutting down.");
+                Environment.Exit(-1);
+            }
+            return null;
         }
     }
 }

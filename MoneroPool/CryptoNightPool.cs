@@ -103,6 +103,7 @@ namespace MoneroPool
 
             Statics.TotalShares++;
 
+
             worker.ShareRequest(worker.CurrentDifficulty);
             Statics.RedisDb.MinerWorkers.First(x=>x.Identifier==guid).ShareRequest(worker.CurrentDifficulty);
            byte[] prevJobBlock = Helpers.GenerateShareWork(worker.JobSeed);
@@ -156,7 +157,7 @@ namespace MoneroPool
                    result["status"] = "Share failed valdiation!";
                    worker.RejectedShares++;
                    if ((double) worker.RejectedShares/worker.TotalShares >
-                       int.Parse(Statics.Config.IniReadValue("ban-reject-percentage")))
+                       int.Parse(Statics.Config.IniReadValue("ban-reject-percentage")) && worker.TotalShares > int.Parse(Statics.Config.IniReadValue("ban-after-shares")))
                    {
                        result["status"] = "You're banished!";
                        int minutes = int.Parse(Statics.Config.IniReadValue("ban-time-minutes"));
@@ -185,7 +186,8 @@ namespace MoneroPool
 
            ConnectedWorker worker = Statics.ConnectedClients.First(x => x.Key == guid).Value;
            worker.LastSeen = DateTime.Now;
-           worker.CurrentDifficulty =uint.Parse(Statics.Config.IniReadValue("miner-start-difficulty"));
+           if(worker.ShareDifficulty.Count>=4)
+             worker.CurrentDifficulty = Helpers.WorkerVardiffDifficulty(worker);
            worker.CurrentBlock = Statics.CurrentBlockHeight;
 
 
@@ -204,7 +206,6 @@ namespace MoneroPool
 
            response["result"] = job;
 
-           worker.NewJobRequest();
            MinerWorker minerWorker = Statics.RedisDb.MinerWorkers.First(x => x.Identifier == guid);
            minerWorker.NewJobRequest();
            Statics.RedisDb.SaveChanges(minerWorker);

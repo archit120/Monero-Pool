@@ -27,10 +27,11 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 * Extremely detailed database.
 * Front end with individual miner statistics and beautiful charts.
 * Address validation.
-
-#### Under Development
 * Vardiff support
 * Live stats
+
+#### Under Development
+* Stratum support
 
 ===
 

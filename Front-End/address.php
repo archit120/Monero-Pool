@@ -1,7 +1,5 @@
 <?php
-
 require 'Predis/Autoloader.php';
-
 $settings=json_decode(file_get_contents("config.json"), true);
 
 Predis\Autoloader::register();
@@ -64,17 +62,53 @@ else
 	$response["miners"] = $miners;
 	$response["hashrate"] = $hashrate;
 	$response["roundshare"] = $shares;
-	$response["totalpaidout"] = "To be implemented";
+	$response["totalpaidout"] =  json_decode($address->TotalPaidOut, true) / $settings["coinunits"];
 	$response["blocks"] = $blocks;
 	
 	$labels = array();
 	$data = array();
 	
+	$tz = new DateTimeZone('Europe/London');
+
 	foreach(json_decode($address->TimeHashRate, true) as $k=>$v)
 	{
-	$datetime = new DateTime($k);
+		$datetime = new DateTime($k);
+	    $datetime->setTimeZone($tz);
 		$labels[] = $datetime->format('Y-m-d H:i:s');
 		$data[] = $v;
+	}
+	
+	$fixL = array_reverse(array_values($labels));
+	$fixL = array_shift($fixL);
+	
+	$now = new DateTime();
+	$now->setTimeZone($tz);
+	$fixL = new DateTime($fixL);
+	$seconds = $now->getTimestamp() - $fixL->getTimestamp();
+	
+	if($seconds/60 > 5)
+	{
+		$fixedL = $fixL;
+		for($i=0; $i<$seconds/(60 * 5); $i++)
+		{
+			$labels[] = $fixedL->format('Y-m-d H:i:s');
+			$data[] = 0;
+			$fixedL->add(new DateInterval('PT' . '5' . 'M'));
+		}
+	}
+	
+	$finalFix = array();
+	$length = count($labels);
+	for($i = 0;$i<$length;$i++)
+	{
+		if($i==0 || $i == ($length - 1))
+		{
+			$labels[$i] = $labels[$i];
+		}
+		else
+		{
+			$labels[$i] = "";
+		}
 	}
 	
 	$response["labels"]= $labels;

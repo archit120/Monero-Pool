@@ -155,6 +155,72 @@
         }
     }();
 	
+			function onReceiveJson(data)
+			{       $("#roundshare").html(data["roundshare"]);
+
+			$("#miners").html(data["miners"]);
+                            $("#hr").html(data["hashrate"]);
+                            $("#paidout").html(data["totalpaidout"]);
+							
+
+                            var items = [];
+                            data["blocks"].forEach(function (val) {
+                                items.push("<div class=\"span2 bg-lighterBlue text-center\"><h3 style=\"font-size:1.8rem; line-height: 15px; margin-bottom: 10px\" class=\"fg-white\">"+ val +"</h3></div>");
+
+                            });
+							
+							$("#blocksfoundrow").html(items);
+							$("#myChart").attr("width", $("#myChart").parent().width());
+							$("#myChart").attr("height", rem() * 45);
+
+							var ctx = document.getElementById("myChart").getContext("2d");
+							var data = {
+								labels : data["labels"],
+								datasets : [
+									{
+										fillColor : "rgba(0,0,0,0.5)",
+										strokeColor : "rgba(0,0,0,1)",
+										pointColor : "rgba(0,0,0,1)",
+										pointStrokeColor : "#fff",
+										data : data["data"]
+									}
+								]
+							};
+							
+							var options = {
+							scaleOverlay : false,
+							scaleOverride : false,
+							scaleLineColor : "rgba(0,0,0,.1)",
+							scaleLineWidth : 1,
+							scaleShowLabels : true,
+							scaleLabel : "<%=value%>",
+							scaleFontFamily : "'Arial'",
+							scaleFontSize : 12,
+							scaleFontStyle : "normal",
+							scaleFontColor : "#666",	
+							scaleShowGridLines : false,
+							scaleGridLineColor : "rgba(0,0,0,.05)",
+							scaleGridLineWidth : 1,	
+							bezierCurve : true,
+							pointDot : false,
+							pointDotRadius : 3,
+							pointDotStrokeWidth : 1,
+							datasetStroke : true,
+							datasetStrokeWidth : 2,
+							datasetFill : true,
+							animation : true,
+							animationSteps : 60,
+							animationEasing : "easeOutQuart",
+							onAnimationComplete : null
+							
+							};
+							new Chart(ctx).Line(data, options);
+				setTimeout(function(){
+					$.getJSON("address.php", "address="+qs["address"], onReceiveJson);
+				},1*1000);			
+			}
+			
+			
             var qs = (function (a) {
                 if (a == "") return {};
                 var b = {};
@@ -177,39 +243,7 @@
 
                     $.getJSON("address.php", "address="+qs["address"], function (data) {
                         if (data["found"] == true) {
-                            $("#roundshare").html(data["roundshare"]);
-                            $("#miners").html(data["miners"]);
-                            $("#hr").html(data["hashrate"]);
-                            $("#paidout").html(data["totalpaidout"]);
-							
-
-                            var items = [];
-                            data["blocks"].forEach(function (val) {
-                                items.push("<div class=\"span2 bg-lighterBlue text-center\"><h3 style=\"font-size:1.8rem; line-height: 15px; margin-bottom: 10px\" class=\"fg-white\">"+ val +"</h3></div>");
-
-                            });
-							
-							$("#blocksfoundrow").append(items);
-							$("#myChart").attr("width", $("#myChart").parent().width());
-							$("#myChart").attr("height", rem() * 45);
-
-							var ctx = document.getElementById("myChart").getContext("2d");
-							var data = {
-								labels : data["labels"],
-								datasets : [
-									{
-										fillColor : "rgba(0,0,0,0.5)",
-										strokeColor : "rgba(0,0,0,1)",
-										pointColor : "rgba(0,0,0,1)",
-										pointStrokeColor : "#fff",
-										data : data["data"]
-									}
-								]
-							};
-							new Chart(ctx).Line(data);
-							
-							
-						
+							onReceiveJson(data);
                         } else {
                             $("#adfounddiv").hide();
                             $("#search").show();

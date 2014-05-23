@@ -27,8 +27,10 @@ foreach($jblock as $jb)
 	if($jb->Found == "true")
 	{	$a = array();
 
+	
 		$a["Founder"] = json_decode($jb->Founder);
 		$a["Height"] = json_decode($jb->BlockHeight);
+		$a["Orphan"] = json_decode($jb->Orphan);
 		$top50[]=json_encode($a);
 		$max--;
 		if($max==0)
@@ -36,5 +38,9 @@ foreach($jblock as $jb)
 	}
 }
 
-echo(json_encode($top50));
+$response = array();
+$response["blocks"]=$top50;
+$info = $client->hgetall("PoolInformation");
+$response["top"] = $info["CurrentBlock"];
+echo(json_encode($response));
 ?>

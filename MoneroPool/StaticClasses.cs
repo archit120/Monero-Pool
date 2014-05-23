@@ -145,29 +145,38 @@ namespace MoneroPool
         public static uint WorkerVardiffDifficulty(ConnectedWorker worker)
         {
             //We calculate average of last 4 shares.
+            double aTargetTime = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-seconds"));
 
-            int aTargetTime = (((worker.ShareDifficulty.AsQueryable().Last().Key.Seconds +
-                                 worker.ShareDifficulty[worker.ShareDifficulty.Count - 1].Key.Seconds)/
-                                2) - int.Parse(Statics.Config.IniReadValue("vardiff-targettime-seconds")));
-
-            double deviance =
-               100.0 -
-                         ((double) (aTargetTime*100)/
-                          int.Parse(Statics.Config.IniReadValue("vardiff-targettime-deviation-allowed")));
-
-            if (Math.Abs(deviance) < int.Parse(Statics.Config.IniReadValue("vardiff-targettime-deviation-allowed")))
-                return worker.CurrentDifficulty;
-            if (deviance > 0  )
+            if ((DateTime.Now - worker.LastShare).Seconds > aTargetTime)
             {
-                if (deviance > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
-                    deviance = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                return (uint)((worker.CurrentDifficulty*(100 + deviance))/100);
+                double deviance = 100 - (((DateTime.Now - worker.LastShare).Seconds*100)/aTargetTime);
+                if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
+                    deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
+                return (uint)((worker.CurrentDifficulty * (100 + deviance)) / 100);
             }
             else
             {
-             if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
-                    deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                return (uint)((worker.CurrentDifficulty*(100 + deviance))/100);
+                double aTime = worker.ShareDifficulty.Last().Key.TotalSeconds;
+
+
+
+                double deviance = 100 -
+                                  ((aTime*100)/int.Parse(Statics.Config.IniReadValue("vardiff-targettime-seconds")));
+
+                if (Math.Abs(deviance) < int.Parse(Statics.Config.IniReadValue("vardiff-targettime-deviation-allowed")))
+                    return worker.CurrentDifficulty;
+                if (deviance > 0)
+                {
+                    if (deviance > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
+                        deviance = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
+                    return (uint) ((worker.CurrentDifficulty*(100 + deviance))/100);
+                }
+                else
+                {
+                    if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
+                        deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
+                    return (uint) ((worker.CurrentDifficulty*(100 + deviance))/100);
+                }
             }
         }
 

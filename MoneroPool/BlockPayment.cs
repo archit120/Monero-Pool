@@ -83,7 +83,7 @@ namespace MoneroPool
 
              param["destinations"] = destinations;
 
-             param["fee"] = 0;
+             param["fee"] = ulong.Parse(Statics.Config.IniReadValue("tx-fee"));
              param["mixin"] = 0;
              param["unlock_time"] = 0;
 
