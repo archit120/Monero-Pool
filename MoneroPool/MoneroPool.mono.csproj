@@ -75,7 +75,8 @@
     <Compile Include="ConnectedWorker.cs" />
     <Compile Include="CryptoNightPool.cs" />
     <Compile Include="PoolBlock.cs" />
-    <Compile Include="StaticClasses.cs" />
+    <Compile Include="StaticClasses.cs" />    
+	<Compile Include="DifficultyRetargeter.cs" />
     <Compile Include="INIfile.cs" />
     <Compile Include="JsonRPC.cs" />
     <Compile Include="Logger.cs" />

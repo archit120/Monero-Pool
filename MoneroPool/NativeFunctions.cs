@@ -18,6 +18,9 @@ namespace MoneroPool
         [DllImport("CryptoNight", EntryPoint = "check_account_address")]
         public static extern UInt32 check_account_address(string address, UInt32 prefix);
 
+        [DllImport("CryptoNight", EntryPoint = "convert_block")]
+        public static extern UInt32 convert_block(byte[] cblock, int length, byte[] convertedblock);
+
 
         public static bool IsLinux
         {

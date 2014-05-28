@@ -6,7 +6,6 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 
 #### Index
 * [Features](#features)
-* [Under Development](#under-development)
 * [Usage](#usage)
   * [Requirements](#requirements)
   * [Downloading & Installing](#1-downloading--installing)
@@ -29,9 +28,7 @@ An open source Crypto Night Pool written in C# and C++ for maximum speed and eff
 * Address validation.
 * Vardiff support
 * Live stats
-
-#### Under Development
-* Stratum support
+* TCP based Stratum like protocol
 
 ===
 
@@ -73,24 +70,48 @@ Have a look the sample config.txt given and configure it to your liking.
 
 Sample config
 ```
+#Daemon RPC address
 daemon-json-rpc=http://127.0.0.1:18081
+#Wallet RPC address
 wallet-json-rpc=http://127.0.0.1:8082
+#Http Server address with port
 http-server=http://*:7707/
+#Pool wallet address
 wallet-address=41jhre5xFk92GYaJgxvHuzUC5uZtQ4UDU1APv3aRAc27DWBqKEzubC2WSvmnbxaswLdB1BsQnSfxfYXvEqkXPvcuS4go3aV
+#Redis database server address
 redis-server=127.0.0.1
+#Redis database Id
 redis-database=0
+#Number of seconds before removing a miner without getting a response
 client-timeout-seconds=60
-miner-start-difficulty=10
-base-difficulty=10
+#Starting difficulty for all miners
+base-difficulty=150
+#Ban when this percentage of shares are invalid
 ban-reject-percentage=50
+#Minutes to ban the miner for
 ban-time-minutes=60
+#Block depth required for transactions to occur
 block-confirms=60
+#Percentage of pool fee
 pool-fee=5
+#Base 58 prefix for address
 base58-prefix=18
+#Enable banning after this many shares
 ban-after-shares=10
-vardiff-targettime-seconds=30
-vardiff-targettime-deviation-allowed=1
-vardiff-targettime-maxdeviation=100
+#Target time for shares
+vardiff-targettime-seconds=15
+#vardiff deviation from target time allowed
+vardiff-targettime-deviation-allowed=5
+#Percentage of maximum difficulty change in one step
+vardiff-targettime-maxdeviation=10
+#Maximum difficulty
+vardiff-max-difficulty=15000
+#Maximum concurrent works to miner
+max-concurrent-works=15
+#Tcp server port
+stratum-server-port=7706
+#Retarget difficulty for miners every this seconds
+diffiulty-retarget=5
 ```
 
 #### 3) Start the pool
@@ -112,7 +133,7 @@ Edit the config.json
 ```javascript
 {"scheme":"tcp","host":"192.168.1.4","port":6379}
 ```
-Download and extract [Predis](https://github.com/nrk/predis) to the root directroy of front end. Host with a webserver capable of [PHP](http://www.php.net/).
+Download and extract [Predis](https://github.com/nrk/predis) to the root directroy of front end. Host with a webserver capable of serving [PHP](http://www.php.net/) files.
 
 #### Upgrading
 When upgrading it is highly recommended to wait for an official release. Since the pool is still in extremely beta stage many big changes may be implemented so follow the step listed in release carefully while upgrading.

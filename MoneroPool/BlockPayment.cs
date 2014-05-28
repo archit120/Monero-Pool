@@ -12,6 +12,8 @@ namespace MoneroPool
     {
         public BlockPayment()
         {
+            Logger.Log(Logger.LogLevel.Debug, "BlockPayment declared");    
+
         }
 
 
@@ -115,6 +117,7 @@ namespace MoneroPool
                         confirms >= int.Parse(Statics.Config.IniReadValue("block-confirms")))
                     {
                         //Do payments
+                        Logger.Log(Logger.LogLevel.Special, "Initiating payments for block with height {0}", pBlock.BlockHeight);
                         InitiatePayments((ulong)block["reward"], pBlock);
                      
                         Statics.BlocksPendingPayment.RemoveAt(i);
@@ -123,6 +126,7 @@ namespace MoneroPool
                     if ((bool) block["orphan_status"])
                     {
                         //Orphaned      
+                        Logger.Log(Logger.LogLevel.Error, "Block with hieght {0}  orphaned!",pBlock.BlockHeight);
                         Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == pBlock.BlockHeight);
                         rBlock.Orphan = true;
                         Statics.RedisDb.SaveChanges(rBlock);

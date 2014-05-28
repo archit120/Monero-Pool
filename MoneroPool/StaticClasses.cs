@@ -105,6 +105,7 @@ namespace MoneroPool
         {
             //Thanks surfer43    , seriously thank you, It works great
 
+            Logger.Log(Logger.LogLevel.Debug, "Returning hash rate of {0}",difficulty/time);
             return difficulty / time;
         }
 
@@ -144,19 +145,22 @@ namespace MoneroPool
 
         public static uint WorkerVardiffDifficulty(ConnectedWorker worker)
         {
-            //We calculate average of last 4 shares.
             double aTargetTime = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-seconds"));
 
-            if ((DateTime.Now - worker.LastShare).Seconds > aTargetTime)
+            uint returnValue = 0;
+            // Don't keep it no zone forever
+            if ((DateTime.Now - worker.LastShare).TotalSeconds > aTargetTime)
             {
                 double deviance = 100 - (((DateTime.Now - worker.LastShare).Seconds*100)/aTargetTime);
                 if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
                     deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                return (uint)((worker.CurrentDifficulty * (100 + deviance)) / 100);
+                returnValue = (uint)((worker.LastDifficulty * (100 + deviance)) / 100);
             }
             else
-            {
-                double aTime = worker.ShareDifficulty.Last().Key.TotalSeconds;
+            {                    
+                //We calculate average of last 4 shares.
+
+                double aTime = worker.ShareDifficulty.Skip(worker.ShareDifficulty.Count-4).Take(4).Sum(x=>x.Key.TotalSeconds)/4;
 
 
 
@@ -164,20 +168,27 @@ namespace MoneroPool
                                   ((aTime*100)/int.Parse(Statics.Config.IniReadValue("vardiff-targettime-seconds")));
 
                 if (Math.Abs(deviance) < int.Parse(Statics.Config.IniReadValue("vardiff-targettime-deviation-allowed")))
-                    return worker.CurrentDifficulty;
-                if (deviance > 0)
+                    returnValue = worker.LastDifficulty;
+                else if (deviance > 0)
                 {
                     if (deviance > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
                         deviance = int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                    return (uint) ((worker.CurrentDifficulty*(100 + deviance))/100);
+                    returnValue = (uint)((worker.LastDifficulty * (100 + deviance)) / 100);
                 }
                 else
                 {
                     if (Math.Abs(deviance) > int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation")))
                         deviance = -int.Parse(Statics.Config.IniReadValue("vardiff-targettime-maxdeviation"));
-                    return (uint) ((worker.CurrentDifficulty*(100 + deviance))/100);
+                    returnValue = (uint)((worker.LastDifficulty * (100 + deviance)) / 100);
                 }
             }
+
+            if (returnValue < uint.Parse(Statics.Config.IniReadValue("base-difficulty")))
+                returnValue = uint.Parse(Statics.Config.IniReadValue("base-difficulty"));
+            else if (returnValue > uint.Parse(Statics.Config.IniReadValue("vardiff-max-difficulty")))
+                returnValue = uint.Parse(Statics.Config.IniReadValue("vardiff-max-difficulty"));
+            Logger.Log(Logger.LogLevel.Debug, "Returning new difficulty if {0} vs previous {1}", returnValue, worker.LastDifficulty);
+            return returnValue;
         }
 
         public static string GenerateUniqueWork(ref int seed)
@@ -187,14 +198,22 @@ namespace MoneroPool
 
             Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserved_offset"], 4);
 
+            work = GetConvertedBlob(work);
+
+            Logger.Log(Logger.LogLevel.Debug, "Generated unqiue work for seed {0}",seed);
             return BitConverter.ToString(work).Replace("-", "");
         }
 
-        public static byte[] GenerateShareWork(int seed)
+        public static byte[] GenerateShareWork(int seed,bool convert)
         {
             byte[] work = StringToByteArray((string)Statics.CurrentBlockTemplate["blocktemplate_blob"]);
 
             Array.Copy(BitConverter.GetBytes(seed), 0, work, (int)Statics.CurrentBlockTemplate["reserved_offset"], 4);
+
+            if(convert)
+                work = GetConvertedBlob(work);
+
+            Logger.Log(Logger.LogLevel.Debug, "Generated share work for seed {0}", seed);
 
             return work;
         }
@@ -266,5 +285,11 @@ namespace MoneroPool
             return true;
         }
 
+        public static byte[] GetConvertedBlob(byte[] blob)
+        {
+            byte[] converted = new byte[128];
+            uint returnLength = NativeFunctions.convert_block(blob, blob.Length, converted);
+            return converted.Take((int)returnLength).ToArray();
+        }
     }
 }

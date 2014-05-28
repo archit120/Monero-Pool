@@ -12,6 +12,8 @@ namespace MoneroPool
     {
         public BlockSubmitter()
         {
+            Logger.Log(Logger.LogLevel.Debug, "BlockSubmitter declared");    
+
         }
 
         public async void Start()
@@ -30,6 +32,7 @@ namespace MoneroPool
 
                         if (!Statics.BlocksPendingPayment.Any(x => x.BlockHeight == block.BlockHeight))
                         {
+                            Logger.Log(Logger.LogLevel.Special, "Submitting block with height {0}", block.BlockHeight);
                             JObject submitblock =
                                 (await
                                  Statics.DaemonJson.InvokeMethodAsync("submitblock",
@@ -41,6 +44,7 @@ namespace MoneroPool
                             {
                                 if ((string) submitblock["result"]["status"] == "OK")
                                 {
+                                    Logger.Log(Logger.LogLevel.Special, "Block submitted was accepted! Adding for payment");
                                     Block rBlock = Statics.RedisDb.Blocks.First(x => x.BlockHeight == block.BlockHeight);
                                     //
                                     rBlock.Found = true;

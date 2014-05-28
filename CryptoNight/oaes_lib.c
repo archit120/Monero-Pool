@@ -42,10 +42,6 @@ static const char _NR[] = {
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __GNUC__
-#define _getpid getpid
-#endif
-
 #ifdef WIN32
 #include <process.h>
 #else

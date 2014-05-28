@@ -79,7 +79,7 @@ int keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
     uint8_t temp[144];
     int i, rsiz, rsizw;
 
-    rsiz = sizeof(state_t) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
+    rsiz = sizeof(state_t) == mdlen ? 136 : 200 - 2 * mdlen;
     rsizw = rsiz / 8;
     
     memset(st, 0, sizeof(st));

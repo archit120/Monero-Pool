@@ -95,12 +95,17 @@
     <ClCompile>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <PreprocessorDefinitions>WIN32</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>L:\local\boost_1_55_0</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>L:\local\boost_1_55_0\lib64-msvc-11.0</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="address.cpp" />
     <ClCompile Include="base58.cpp" />
     <ClCompile Include="blake256.cpp" />
+    <ClCompile Include="block.cpp" />
     <ClCompile Include="groestl.cpp" />
     <ClCompile Include="hash-extra-blake.cpp" />
     <ClCompile Include="hash-extra-groestl.cpp" />
@@ -112,11 +117,16 @@
     <ClCompile Include="oaes_lib.c" />
     <ClCompile Include="skein.cpp" />
     <ClCompile Include="cn-hash.cpp" />
+    <ClCompile Include="tree-hash.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="address.h" />
     <ClInclude Include="base58.h" />
+    <ClInclude Include="binary_archive.h" />
     <ClInclude Include="blake256.h" />
+    <ClInclude Include="crypto.h" />
+    <ClInclude Include="cryptonote_basic.h" />
+    <ClInclude Include="cryptonote_boost_serialization.h" />
     <ClInclude Include="groestl.h" />
     <ClInclude Include="groestl_tables.h" />
     <ClInclude Include="hash-ops.h" />
@@ -125,6 +135,16 @@
     <ClInclude Include="keccak.h" />
     <ClInclude Include="oaes_config.h" />
     <ClInclude Include="oaes_lib.h" />
+    <ClInclude Include="serialization\binary_archive.h" />
+    <ClInclude Include="serialization\binary_utils.h" />
+    <ClInclude Include="serialization\crypto.h" />
+    <ClInclude Include="serialization\debug_archive.h" />
+    <ClInclude Include="serialization\json_archive.h" />
+    <ClInclude Include="serialization\json_utils.h" />
+    <ClInclude Include="serialization\serialization.h" />
+    <ClInclude Include="serialization\string.h" />
+    <ClInclude Include="serialization\variant.h" />
+    <ClInclude Include="serialization\vector.h" />
     <ClInclude Include="skein.h" />
     <ClInclude Include="skein_port.h" />
     <ClInclude Include="hash.h" />

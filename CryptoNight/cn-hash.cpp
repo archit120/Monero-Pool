@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include "crypto.h"
 #include "hash.h"
 #include "keccak.h"
 #include "int-util.h"
@@ -80,8 +81,10 @@ union cn_slow_hash_state {
 };
 #pragma pack(pop)
 
-void cn_fast_hash(char *data, uint32_t length, char *hash) {
-	keccak1600((const uint8_t*)data, length,(uint8_t*) hash);
+void cn_fast_hash(char *data, uint32_t length, char* hash) {
+	uint8_t nativehas[200];
+	keccak1600((const uint8_t*)data, length,(uint8_t*) nativehas);
+	memcpy(hash, nativehas, 32);
 }
 
 void cn_slow_hash(char *data, uint32_t length, char *hash) {

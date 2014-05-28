@@ -276,6 +276,11 @@ namespace MoneroPool
             Remove<MinerWorker>(worker);
             MinerWorkers.Remove(worker);
         }
+        public void Remove(Ban ban)
+        {
+            Remove<Ban>(ban);
+            Bans.Remove(ban);
+        }
     }
 
     public class Ban

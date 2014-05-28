@@ -44,10 +44,10 @@
         <div class="container">
             <div style="padding: 20px" class="grid no-margin">
                 <div class="row">
-                    <div class="span4">
+                    <div class="span3">
                         <div class="notice marker-on-right bg-lighterBlue padding20 text-center" style="height: 150px">
                             <h1 class="fg-white font-size: 80px; line-height: 50px; margin-bottom: 15px">3</h1>
-                            <p class="subheader-secondary fg-white">simple steps to start mining and start earning</p>
+                            <p class="subheader-secondary fg-white">simple steps to start mining</p>
                         </div>
                        
 
@@ -151,13 +151,9 @@
 				},1*1000);								
 			}
 			
-            $("document").ready(function() {
-                $.getJSON("top10.php", onReceiveJson);
-            });
-            $("document").ready(function() {
-                $.getJSON("stats.php", function (data) {
-					$("#poolhash").html(getHashReadable(jQuery.parseJSON(data["PoolHashRate"])));	
-					$("#networkhash").html(getHashReadable(jQuery.parseJSON(data["NewtworkHashRate"])));	
+		function onReceiveStatsJson(data)
+		{	$("#poolhash").html(getHashReadable(jQuery.parseJSON(data["PoolHashRate"])));	
+			$("#networkhash").html(getHashReadable(jQuery.parseJSON(data["NewtworkHashRate"])));	
 					$("#networkblock").html(jQuery.parseJSON(data["CurrentBlock"]));	
 					$("#poolshares").html(jQuery.parseJSON(data["RoundShares"]));
 					$("#poolbasediff").html(jQuery.parseJSON(data["BaseDificulty"]));
@@ -173,7 +169,18 @@
                         $("#poolspeed").html(SharesPerSecond.toFixed(0).toString() +" every 1 seconds");
 
 					}
-	//networkdiff
+						setTimeout(function(){
+$.getJSON("stats.php", onReceiveStatsJson);},1*1000);
+			});
+
+		}
+			
+            $("document").ready(function() {
+                $.getJSON("top10.php", onReceiveJson);
+            });
+            $("document").ready(function() {
+                $.getJSON("stats.php", function (data) {
+					onReceiveStatsJson(data);
 				});
 			});		
 
