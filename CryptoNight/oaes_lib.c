@@ -49,6 +49,10 @@ static const char _NR[] = {
 #include <unistd.h>
 #endif
 
+#ifdef __GNUC__
+#define _getpid getpid
+#endif
+
 #include "oaes_config.h"
 #include "oaes_lib.h"
 

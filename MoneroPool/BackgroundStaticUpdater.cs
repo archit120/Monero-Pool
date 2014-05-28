@@ -51,6 +51,11 @@ namespace MoneroPool
                                                                                                 .IniReadValue(
                                                                                                     "wallet-address")))))
                                                ["result"];
+            if (Statics.CurrentBlockTemplate == null || Statics.CurrentBlockHeight == 0)
+            {
+                Logger.Log(Logger.LogLevel.Error, "Failed to get block template and height. Shutting down!");
+                Environment.Exit(-1);
+            }
             Statics.HashRate.Begin = DateTime.Now;
             Statics.HashRate.Difficulty = 0;
             Logger.Log(Logger.LogLevel.General, "Acquired block template and height, miners can connet now!");
@@ -109,7 +114,15 @@ namespace MoneroPool
                             if (connectedClient.Value.TcpClient != null)
                             {
                                 JObject response = new JObject();
-                                CryptoNightPool.GenerateGetJobResponse(ref response, connectedClient.Key);
+
+                                response["jsonrpc"] = "2.0";
+
+                                response["method"] = "job";
+
+                                JObject bluffResponse = new JObject();
+                                CryptoNightPool.GenerateGetJobResponse(ref bluffResponse, connectedClient.Key);
+
+                                response["params"] = bluffResponse["result"];
                                 string s = JsonConvert.SerializeObject(response);
                                 s += "\n";
                                 byte[] byteArray = Encoding.UTF8.GetBytes(s);

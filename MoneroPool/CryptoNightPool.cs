@@ -148,9 +148,22 @@ namespace MoneroPool
             Statics.TotalShares++;
             JObject result = new JObject();
 
+            if (nonce == null || nonce.Length == 0)
+            {
+                response["error"] = "Invalid arguments!";
+                return false;
+            }
+
             try
             {
                 ShareJob shareJob = worker.JobSeed.First(x => x.Key == jobId).Value;
+                if (!shareJob.SubmittedShares.Contains(BitConverter.ToInt32(nonce, 0)))
+                    shareJob.SubmittedShares.Add(BitConverter.ToInt32(nonce, 0));
+                else
+                {
+                    response["error"] = "Duplicate share";
+                    return false;
+                }
                 int jobSeed = shareJob.Seed;
                 worker.ShareRequest(shareJob.CurrentDifficulty);
                 Statics.RedisDb.MinerWorkers.First(x => x.Identifier == guid).ShareRequest(shareJob.CurrentDifficulty);
@@ -234,7 +247,7 @@ namespace MoneroPool
             }
             catch
             {
-                result["status"] = "Invalid job id";
+                result["error"] = "Invalid job id";
             }
             response["result"] = result;
 
@@ -249,7 +262,6 @@ namespace MoneroPool
             worker.LastSeen = DateTime.Now;
             /*if (worker.ShareDifficulty.Count >= 4)
                 worker.LastDifficulty = Helpers.WorkerVardiffDifficulty(worker);  */
-            worker.CurrentBlock = Statics.CurrentBlockHeight;
 
 
             Logger.Log(Logger.LogLevel.General, "Getwork request from {0}", guid);
@@ -257,8 +269,9 @@ namespace MoneroPool
             //result["id"] = guid;
 
             int seed = 0;
-            if (worker.PendingDifficulty != worker.LastDifficulty)
+            if (worker.PendingDifficulty != worker.LastDifficulty || worker.CurrentBlock != Statics.CurrentBlockHeight)
             {
+                worker.CurrentBlock = Statics.CurrentBlockHeight;
                 worker.LastDifficulty = worker.PendingDifficulty;
                 job["blob"] = Helpers.GenerateUniqueWork(ref seed);
 
@@ -296,12 +309,13 @@ namespace MoneroPool
 
         public void GenerateLoginResponse(ref JObject response, string guid, string address)
         {
+
             JObject result = new JObject();
             JObject job = new JObject();
 
             if (!Helpers.IsValidAddress(address, uint.Parse(Statics.Config.IniReadValue("base58-prefix"))))
             {
-                result["status"] = "Invalid Address";
+                result["error"] = "Invalid Address";
                 return;
             }
 
@@ -457,10 +471,22 @@ namespace MoneroPool
 
                 response["error"] = null;
                 if ((string) request["method"] == "login")
+                {
                     guid = Guid.NewGuid().ToString();
+                    
+                }
+
                 else
+                {
                     guid = (string) request["params"]["id"];
 
+                    if (!Statics.ConnectedClients.ContainsKey(guid))
+                    {
+                        response["error"] = "Not authenticated yet!";
+                        return JsonConvert.SerializeObject(response);
+                    }
+
+                }
                 switch ((string) request["method"])
                 {
                     case "login":
@@ -478,6 +504,7 @@ namespace MoneroPool
 
                 return JsonConvert.SerializeObject(response);
             }
+            
             catch (Exception e)
             {
                 Logger.Log(Logger.LogLevel.Error, e.ToString());

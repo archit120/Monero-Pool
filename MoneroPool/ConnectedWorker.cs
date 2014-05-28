@@ -25,6 +25,17 @@ namespace MoneroPool
                 _currentDifficulty = value;
             }
         }
+        private List<int> _submittedShares; 
+
+        public List<int> SubmittedShares
+        {
+            get
+            {
+                if(_submittedShares==null)
+                    _submittedShares = new List<int>();
+                return _submittedShares;
+            }
+        } 
     }
     public class ConnectedWorker
     {
