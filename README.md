@@ -1,6 +1,10 @@
 Monero-Pool
 ===========
 
+#### This project is broken because of changes in the CryptoNight protocol. There are no plans to revive it and getting it to work today can be significant work. Please look for other alternatives. 
+
+---
+
 An open source Crypto Night Pool written in C# and C++ for maximum speed and efficiency for coins such as Monero and Bytecoin.  Uses Redis for a high performance database. Also comes with a full fledged front end.
 
 
